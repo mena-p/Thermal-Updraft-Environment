@@ -8,6 +8,9 @@
 # Datasets
 *.txt
 
+# Saved variables
+*.mat
+
 # Windows default autosave extension
 *.asv
 
