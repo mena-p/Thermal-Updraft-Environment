@@ -13,7 +13,8 @@
 clear
 close
 
-%% Parsing, filtering and saving soundings
+%% Parse, filter and save soundings
+% Only do this once per file.
 % Parse derived parameter file
 parsed_soundings = parse_derived('test_data.txt');
 
@@ -21,14 +22,14 @@ parsed_soundings = parse_derived('test_data.txt');
 filtered_soundings = filter_soundings(parsed_soundings);
 
 % Save the filtered_soundings variable to a MAT file for future use
-save('filtered_soundings.mat', 'filtered_soundings', '-v7.3');
+save('filtered_soundings.mat', 'filtered_soundings');
 
-%% Extracting and plotting a sounding
+%% Extract data for Simulink
 % Load the saved variable from the MAT file in Simulink
 load('filtered_soundings.mat');
 
 % Extract and return only the relevant data in the chosen sounding
-reduced_sounding = extract_sounding_data(filtered_soundings(1));
+reduced_sounding = extract_sounding_data(filtered_soundings(10));
 
 % Remove all measurements that have a geopotential height REPGPH
 % greater than 1.3 times the mixed layer height.
@@ -47,9 +48,10 @@ environmental_data = [reduced_sounding.derived.REPGPH, ...
     reduced_sounding.derived.PTEMP, ...
     reduced_sounding.derived.VTEMP];
 
+%% Plot atmospheric profiles
 
 % Plot pressure, temperature, potential temperature and virtual 
 % temperature profiles over geopotential height. The geopotential 
 % height is used as the vertical coordinate.
-plot_sounding(reduced_sounding, 1);
+plot_sounding(reduced_sounding, 1.3);
 
