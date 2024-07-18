@@ -24,6 +24,7 @@
 
 # Simulink Code Generation
 slprj/
+model.slxc
 *.slxc
 *.sIxc
 
@@ -34,3 +35,4 @@ octave-workspace
 *.autosave
 
 *.r2021b
+*.slxc
