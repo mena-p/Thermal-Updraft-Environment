@@ -16,9 +16,6 @@
 # Windows default autosave extension
 *.asv
 
-# Matlab autosave
-*.autosave
-
 # OSX / *nix default autosave extension
 *.m~
 
@@ -27,11 +24,12 @@
 
 # Simulink Code Generation
 slprj/
+*.slxc
 
 # Session info
 octave-workspace
 
 # Simulink autosave extension
-.autosave
+*.autosave
 
 *.r2021b
