@@ -25,6 +25,7 @@
 # Simulink Code Generation
 slprj/
 *.slxc
+*.sIxc
 
 # Session info
 octave-workspace
