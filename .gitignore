@@ -14,6 +14,9 @@
 # Windows default autosave extension
 *.asv
 
+# Matlab autosave
+*.autosave
+
 # OSX / *nix default autosave extension
 *.m~
 
