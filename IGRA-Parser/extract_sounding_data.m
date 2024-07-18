@@ -15,6 +15,9 @@ function reduced_sounding = extract_sounding_data(sounding)
     % - temperature profile
     % - potential temperature profile
     % - virtual temperature profile
+    % - vapor pressure profile
+    % - saturated vapor pressure profile
+    % - relative humidity profile
     %
     % Input: sounding - a sounding object
     % Output: reduced_sounding - a reduced sounding containing only the 
@@ -25,7 +28,7 @@ function reduced_sounding = extract_sounding_data(sounding)
     reduced_sounding.LCLheight = sounding.LCLheight;
 
     % Extract the relevant columns from the sounding data table
-    reduced_sounding.derived = sounding.derived(:,["REPGPH","CALCGPH","PRESS","TEMP","PTEMP","VTEMP"]);
+    reduced_sounding.derived = sounding.derived(:,["REPGPH","CALCGPH","PRESS","TEMP","PTEMP","VTEMP","VAPPRESS","SATVAP","REPRH","CALCRH"]);
 
     % If a row contains missing REPGPH values, fill it with the corresponding 
     % CALCPGH values
@@ -36,4 +39,16 @@ function reduced_sounding = extract_sounding_data(sounding)
 
     % Remove the CALCGPH column
     reduced_sounding.derived.CALCGPH = [];
+
+    % If a row contains missing REPRH values, fill it with the corresponding 
+    % CALCRH values
+    reduced_sounding.derived.REPRH(isnan(reduced_sounding.derived.REPRH)) = reduced_sounding.derived.CALCRH(isnan(reduced_sounding.derived.REPRH));
+
+    % If some rows still contain missing REPRH values, remove them
+    reduced_sounding.derived = rmmissing(reduced_sounding.derived,'DataVariables','REPRH');
+
+    % Remove the CALCRH column
+    reduced_sounding.derived.CALCRH = [];
+  
+
 end
