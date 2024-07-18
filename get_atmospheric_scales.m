@@ -9,15 +9,15 @@ function [wstar, theta_star, qstar] = get_atmospheric_scales(p_surface,T_surface
     %           zi                  = Depth of the mixed layer, m
     %           theta_bar_v         = Daily average surface potential temperature, K (Allen's paper)
     %
-    % Outputs:  wstar       = Mixed layer convective velocity scale, m/s
-    %           theta_star  = Mixed layer temperature scale, K
-    %           qstar       = Mixed layer humidity scale, kg_water/kg_air
+    % Outputs:  wstar               = Mixed layer convective velocity scale, m/s
+    %           theta_star          = Mixed layer temperature scale, K
+    %           qstar               = Mixed layer humidity scale, kg_water/kg_air
     %
-    % Variables:beta        = Bowen ratio, no unit, see Stull pg. 274
-    %           rho         = Density of moist air, kg/m^3
-    %           cp          = Specific heat of dry air, J/kg*K
-    %           X           = proportion of net radiation absorbed into the ground, (Stull section 7.6.1)
-    %           Lv          = latent heat of vaporization of water, J/kg_water 
+    % Variables:beta                = Bowen ratio, no unit, see Stull pg. 274
+    %           rho                 = Density of moist air, kg/m^3
+    %           cp                  = Specific heat of dry air, J/kg*K
+    %           X                   = proportion of net radiation absorbed into the ground, (Stull section 7.6.1)
+    %           Lv                  = latent heat of vaporization of water, J/kg_water 
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
