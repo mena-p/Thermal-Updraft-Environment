@@ -62,10 +62,10 @@ classdef Updraft
             % y = Aircraft y position (m)
             % Outputs:
             % dist = Distance from the aircraft to the updraft (m)
-            
+
             dist = sqrt((x - obj.xPosition)^2 + (y - obj.yPosition)^2);
         end
-        function is_inside = is_inside(obj, x, y, z)
+        function is_inside = is_inside(obj, x, y, z, zi)
             % This function checks if the aircraft is inside the updraft.
             % Inputs:
             % x = Aircraft x position (m)
@@ -74,11 +74,8 @@ classdef Updraft
             % Outputs:
             % is_inside = Boolean value indicating if the aircraft is inside the updraft
 
-            is_inside = false;
-            % Check if the aircraft is inside the updraft
-            if obj.distance_to(x,y) < obj.outer_radius(z,zi)
-                is_inside = true;
-            end
+            is_inside = obj.distance_to(x,y) < obj.outer_radius(z,zi);
+            
         end
     end
 end
