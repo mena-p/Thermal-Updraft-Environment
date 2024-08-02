@@ -26,19 +26,14 @@
 slprj/
 model.slxc
 *.slxc
-*.sIxc
 
 # Session info
 octave-workspace
 
 # Simulink autosave extension
 *.autosave
-
 *.r2021b
-*.slxc
-*.slxc
 
 # Other specific files
 testing.m
-model.slxc
-*.slxc
+
