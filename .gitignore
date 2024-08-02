@@ -41,3 +41,4 @@ octave-workspace
 # Other specific files
 testing.m
 model.slxc
+*.slxc
