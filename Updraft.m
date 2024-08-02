@@ -48,12 +48,12 @@ classdef Updraft
             if outer_radius < 10
                 outer_radius = 10; % limit small updrafts to 20m diameter
             end
-            if r2 < 600
-                r1r2 = .0011 * r2 + .14;
+            if outer_radius < 600
+                ratio = .0011 * outer_radius + .14;
             else
-                r1r2 = .8;
+                ratio = .8;
             end
-            inner_radius = r1r2 * r2;
+            inner_radius = ratio * outer_radius;
         end
         function dist = distance_to(obj, x, y)
             % This function calculates the distance from the aircraft to the updraft.
