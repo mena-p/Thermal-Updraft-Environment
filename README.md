@@ -4,6 +4,7 @@ Clone the repository to your machine.
 
 # Setting up
 After cloning the repository, open the root folder in MATLAB and add the subdirectory `IGRA-Parser` to your PATH by right-clicking it in the "Current Folder" panel and choosing "Add to Path > Selected Folders."
+
 Grab a [derived parameter file](https://www.ncei.noaa.gov/data/integrated-global-radiosonde-archive/access/derived-por/) from NOAA's [Integrated Global Radiosonde Archive](https://www.ncei.noaa.gov/products/weather-balloon/integrated-global-radiosonde-archive) and save it to the root directory. Parsing an entire derived parameter file may take a long time, so testing with a smaller file is recommended.
 
 # Load atmospheric sounding data
