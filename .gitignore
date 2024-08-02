@@ -37,3 +37,7 @@ octave-workspace
 *.r2021b
 *.slxc
 *.slxc
+
+# Other specific files
+testing.m
+model.slxc
