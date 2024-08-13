@@ -142,7 +142,7 @@ for i = 1:length(tablesDW)
 end
 
 % average out the values of ptemp_diff and spec_hum_diff at each position for DW flights
-ptemp_diff_DW_avg = mean(ptemp_diff_DW, 1);
+ptemp_diff_DW_avg = mean(ptemp_diff_DW, 1,"omitnan");
 
 % plot the average values and the original values together
 figure
