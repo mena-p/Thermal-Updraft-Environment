@@ -30,7 +30,7 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
     
     % Check if there are no updrafts
     if num_updrafts == 0
-        warning('No updrafts were provided');
+        error('No updrafts were provided');
     end
 
     % Make an array with the positions of the updrafts
