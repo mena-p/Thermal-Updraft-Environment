@@ -150,7 +150,7 @@ subplot(2,1,1)
 hold on
 plot(xq, ptemp_diff_DW(1, :))
 plot(xq, ptemp_diff_DW(2, :))
-plot(xq, ptemp_diff_DW(3, :))
+%plot(xq, ptemp_diff_DW(3, :))
 hold off
 xlabel('relative distance (m)')
 ylabel('ptemp diff (dgc)')
