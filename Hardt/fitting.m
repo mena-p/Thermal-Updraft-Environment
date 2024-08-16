@@ -1,168 +1,106 @@
-% This script loads the data from all .csv files in the folder "C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Hardt data"
-% each into one table. It extracts only the colums relative_distance_m, ptemt_diff_dgc and spec_hum_diff_gkg from each file.
-% It then plots the values of ptemt_diff_dgc and spec_hum_diff_gkg against relative_distance_m for each table, in the same figure.
+% This script tests out two ways of extrapolating the linear profile of
+% potential temperature into 2D space. The first method is to manually average the
+% two profiles based on the angle the gliders makes with the updraft.
+% The second method is to use the griddata function to interpolate 
+% the values of potential temperature at any point in the updraft. 
 
 close all
 
-% load all .csv files in the folder "C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Hardt data" into a cell array
-files = dir("C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Hardt data\*.csv");
-tablesUW = cell(length(files), 1);
-tablesCW = cell(length(files), 1);
-tablesDW = cell(length(files), 1);
+% Method 1: Manual averaging of the two profiles based on the angle of the glider
+% Load coefficients of the linear profile of potential temperature
+load("coeff_uw.mat");
+load("coeff_cw.mat");
 
-% import the data from each file into a table and store the table in the corresponding cell array
+uw = coeff_uw(1,:);
+cw = coeff_cw(1,:);
 
-for i = 1:length(files)
-    tables{i} = import_thermal2(fullfile(files(i).folder, files(i).name), [17, Inf]);
-    % check if file is crosswind (CW), downwind (DW) or upwind (UW) by checking the file name and store in the corresponding cell array
-    if contains(files(i).name, "CW")
-        tablesCW{i} = tables{i};
-    elseif contains(files(i).name, "UW")
-        tablesUW{i} = tables{i};
-    elseif contains(files(i).name, "DW")
-        tablesDW{i} = tables{i};
-    else
-        error("File name does not contain 'CW', 'DW' or 'UW'");
-    end
-end
+% Declare functions of potential temperature
+ptemp_uw = @(r) uw(1) + uw(2)*cos(r*uw(6)) + uw(3)*sin(r*uw(6)) + uw(4)*cos(2*r*uw(6)) + uw(5)*sin(2*r*uw(6));
+ptemp_cw = @(r) cw(1) + cw(2)*cos(r*cw(6)) + cw(3)*sin(r*cw(6)) + cw(4)*cos(2*r*cw(6)) + cw(5)*sin(2*r*cw(6));
 
-% drop empty rows
-tablesUW = tablesUW(~cellfun('isempty', tablesUW));
-tablesCW = tablesCW(~cellfun('isempty', tablesCW));
-tablesDW = tablesDW(~cellfun('isempty', tablesDW));
+% Define updraft radius, position, and orientation in degrees
+radius = 600; % meters
+pos = [0, 0]; % [x, y] (x is north, y is east)
+ori = 0; % degrees (0 is north, 90 is east)
 
-% plot ptemp_diff_dgc against relative distance between -1 and 1 for UW flights 
+% Create grid of query points [xq,yq] centered at the updraft
+[xq,yq] = meshgrid(pos(1)-radius*4:5:pos(1)+radius*4,pos(2)-radius*4:5:pos(2)+radius*4);
+
+% Calculate the relative distance of each point in the grid to the updraft
+r = sqrt((xq-pos(1)).^2 + (yq-pos(2)).^2);
+
+% Calculate the angle of each point in the grid to the x-axis
+tan = atan2d(yq-pos(2), xq-pos(1));
+tan(tan < 0) = tan(tan < 0) + 360;
+
+% Calculate the angle of each point in the grid to the updraft
+theta = tan - ori;
+
+% Calculate the potential temperature at each point in the grid
+ptemp = cos(theta/180*pi).^2 .*ptemp_uw(r./radius .*cos(theta./180*pi)) + sin(theta./180*pi).^2 .*ptemp_cw(r./radius .*sin(theta./180*pi));
+
+% Calculate the weights of each profile based on the angle of the glider
+w_uw = cos(theta/180*pi).^2;
+w_cw = sin(theta/180*pi).^2;
+
+% Plot the weights in the grid
 figure
-subplot(1,3,1)
-hold on
-for i = 1:length(tablesUW)
-    plot(table2array(tablesUW{i}(:, 1)), table2array(tablesUW{i}(:, 2)))
-end
-% restrict the x axis to -1 and 1
-xlim([-2, 2])
-xlabel('relative distance (m)')
-ylabel('ptemp diff (dgc)')
-title('UW flights')
-hold off
+surf(xq,yq,w_uw, 'LineStyle','none')
+xlabel('x')
+ylabel('y')
+zlabel('w')
+title('Weight of the updraft profile')
 
-% make another plot in the same figure for DW flights
-subplot(1,3,2)
-hold on
-for i = 1:length(tablesDW)
-    plot(table2array(tablesDW{i}(:, 1)), table2array(tablesDW{i}(:, 2)))
-end
-
-% restrict the x axis to -1 and 1
-xlim([-2, 2])
-xlabel('relative distance (m)')
-ylabel('ptemp diff (dgc)')
-title('DW flights')
-hold off
-
-% make another plot in the same figure for CW flights
-subplot(1,3,3)
-hold on
-for i = 1:length(tablesCW)
-    plot(table2array(tablesCW{i}(:, 1)), table2array(tablesCW{i}(:, 2)))
-end
-% restrict the x axis to -1 and 1
-xlim([-2, 2])
-xlabel('relative distance (m)')
-ylabel('ptemp diff (dgc)')
-title('CW flights')
-hold off
-
-% plot spec_hum_diff_gkg against relative distance between -1 and 1 for UW flights 
+% Plot theta in the grid
 figure
-subplot(1,3,1)
-hold on
-for i = 1:length(tablesUW)
-    plot(table2array(tablesUW{i}(:, 1)), table2array(tablesUW{i}(:, 3)))
-end
+surf(xq,yq,theta, 'LineStyle','none')
+xlabel('x')
+ylabel('y')
+zlabel('tan')
+title('Angle of each point in the grid to the x-axis')
 
-% restrict the x axis to -1 and 1
-xlim([-2, 2])
-xlabel('relative distance (m)')
-ylabel('spec hum diff (g/kg)')
-title('UW flights')
-hold off
-
-% make another plot in the same figure for DW flights
-subplot(1,3,2)
-hold on
-for i = 1:length(tablesDW)
-    plot(table2array(tablesDW{i}(:, 1)), table2array(tablesDW{i}(:, 3)))
-end
-% restrict the x axis to -1 and 1
-xlim([-2, 2])
-xlabel('relative distance (m)')
-ylabel('spec hum diff (g/kg)')
-title('DW flights')
-hold off
-
-% make another plot in the same figure for CW flights
-subplot(1,3,3)
-hold on
-for i = 1:length(tablesCW)
-    plot(table2array(tablesCW{i}(:, 1)), table2array(tablesCW{i}(:, 3)))
-end
-% restrict the x axis to -1 and 1
-xlim([-2, 2])
-xlabel('relative distance (m)')
-ylabel('spec hum diff (g/kg)')
-title('CW flights')
-hold off
-
-% interpolate the values in the tables to obtain the ptemp_diff and spec_hum_diff for UW, DW and CW flights
-% in fixed 0.0001 m intervals of relative distance
-
-% interpolate the UW flights
-% find min and max values of relative distance among all tables
-min_dist = inf;
-max_dist = - inf;
-for i = 1:length(tablesDW)
-    if min_dist > tablesDW{i}{1, 1}
-        min_dist = tablesDW{i}{1, 1};
-    end
-    if max_dist < tablesDW{i}{end, 1}
-        max_dist = tablesDW{i}{end, 1};
-    end
-end
-
-% create array of query points
-xq = min_dist:0.0001:max_dist;
-
-% interpolate the values in the tables to obtain the ptemp_diff and spec_hum_diff for DW flights
-% in fixed 0.0001 m intervals of relative distance
-ptemp_diff_DW = zeros(length(tablesDW), length(xq));    % store values of each table in one line of the array
-spec_hum_diff_DW = zeros(length(tablesDW), length(xq)); % same as above
-for i = 1:length(tablesDW)
-    ptemp_diff_DW(i, :) = interp1(table2array(tablesDW{i}(:, 1)), table2array(tablesDW{i}(:, 2)), xq);
-    spec_hum_diff_DW(i, :) = interp1(table2array(tablesDW{i}(:, 1)), table2array(tablesDW{i}(:, 3)), xq);
-end
-
-% average out the values of ptemp_diff and spec_hum_diff at each position for DW flights
-ptemp_diff_DW_avg = mean(ptemp_diff_DW, 1,"omitnan");
-
-% plot the average values and the original values together
+% Plot ptemp_uw and ptemp_cw
 figure
-subplot(2,1,1)
+r = -r/radius:0.01:r/radius;
+plot(r, ptemp_uw(r), 'r')
 hold on
-plot(xq, ptemp_diff_DW(1, :))
-plot(xq, ptemp_diff_DW(2, :))
-%plot(xq, ptemp_diff_DW(3, :))
+plot(r, ptemp_cw(r), 'b')
 hold off
-xlabel('relative distance (m)')
-ylabel('ptemp diff (dgc)')
-title('DW flights')
-xlim([-2, 2])
-subplot(2,1,2)
-plot(xq, ptemp_diff_DW_avg)
-xlabel('relative distance (m)')
-ylabel('avg ptemp diff (dgc)')
-title('DW flights')
-xlim([-2, 2])
+xlabel('r')
+ylabel('ptemp')
+title('Potential temperature profiles')
 
+% Plot the potential temperature in the grid overlayed with the original uw and cw cross-sections, centered at the updraft
+figure
+surf(xq,yq,ptemp, 'LineStyle','none')
+xlabel('x')
+ylabel('y')
+zlabel('ptemp')
+title('Potential temperature in the updraft')
+hold on
 
+% Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
+% Get x and y values of the meshgrid separately
+x = xq(1,:)';
+y = yq(:,1);
 
+% Evaluate the potential temperature at the x and y values
+ptemp_x = ptemp_uw(x./radius);
+ptemp_y = ptemp_cw(y./radius);
 
+% Build vector for griddata function
+x_len = length(x);
+x = [x; zeros(length(y), 1)];
+y = [zeros(x_len, 1); y];
+ptemp = [ptemp_x; ptemp_y];
+
+% Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
+ptemp2 = griddata(x,y,ptemp,xq,yq,"linear");
+
+% Plot the interpolated values and the original values as a line plot
+figure
+surf(xq,yq,ptemp2, 'LineStyle','none')
+xlabel('x')
+ylabel('y')
+zlabel('ptemp')
+title('Interpolated values of potential temperature in the updraft')
