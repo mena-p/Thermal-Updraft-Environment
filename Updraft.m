@@ -162,6 +162,7 @@ classdef Updraft
             % create vector of random perturbations
             perturbation = [randn(1, 6) * 0.2 + 1; randn(1, 6) * 0.2 + 1];
 
+            % multiply coefficients by perturbation
             coeff = coeff .* perturbation;
         end
         function coeff = load_coeff_cw()
@@ -181,6 +182,7 @@ classdef Updraft
             % create vector of random perturbations
             perturbation = [randn(1, 6) * 0.2 + 1; randn(1, 6) * 0.2 + 1];
 
+            % multiply coefficients by perturbation
             coeff = coeff .* perturbation;
         end
     end
