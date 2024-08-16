@@ -90,6 +90,9 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
         % Calculate the temperature inside the updraft (Stull)
         T = Tp * (p/100000)^0.286;
 
+        % T = T + updrafts{updraft_index}.ptemp_diff(x,y);
+        % q = q + updrafts{updraft_index}.humidity_diff(x,y);
+        
         % Calculate mixing ratio inside the updraft (kg water/kg dry air)
         r = 1/0.61 * (Tv/T - 1);
 
