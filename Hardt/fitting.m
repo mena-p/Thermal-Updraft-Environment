@@ -23,6 +23,7 @@ radius = 600; % meters
 pos = [0, 0]; % [x, y] (x is north, y is east)
 ori = 0; % degrees (0 is north, 90 is east)
 
+
 % Create grid of query points [xq,yq] centered at the updraft
 [xq,yq] = meshgrid(pos(1)-radius*4:5:pos(1)+radius*4,pos(2)-radius*4:5:pos(2)+radius*4);
 
@@ -43,64 +44,84 @@ ptemp = cos(theta/180*pi).^2 .*ptemp_uw(r./radius .*cos(theta./180*pi)) + sin(th
 w_uw = cos(theta/180*pi).^2;
 w_cw = sin(theta/180*pi).^2;
 
-% Plot the weights in the grid
-figure
-surf(xq,yq,w_uw, 'LineStyle','none')
-xlabel('x')
-ylabel('y')
-zlabel('w')
-title('Weight of the updraft profile')
+% % Plot the weights in the grid
+% figure
+% surf(xq,yq,w_uw, 'LineStyle','none')
+% xlabel('x')
+% ylabel('y')
+% zlabel('w')
+% title('Weight of the updraft profile')
 
-% Plot theta in the grid
-figure
-surf(xq,yq,theta, 'LineStyle','none')
-xlabel('x')
-ylabel('y')
-zlabel('tan')
-title('Angle of each point in the grid to the x-axis')
+% % Plot theta in the grid
+% figure
+% surf(xq,yq,theta, 'LineStyle','none')
+% xlabel('x')
+% ylabel('y')
+% zlabel('tan')
+% title('Angle of each point in the grid to the x-axis')
 
-% Plot ptemp_uw and ptemp_cw
-figure
-r = -r/radius:0.01:r/radius;
-plot(r, ptemp_uw(r), 'r')
-hold on
-plot(r, ptemp_cw(r), 'b')
-hold off
-xlabel('r')
-ylabel('ptemp')
-title('Potential temperature profiles')
+% % Plot ptemp_uw and ptemp_cw
+% figure
+% r = -r/radius:0.01:r/radius;
+% plot(r, ptemp_uw(r), 'r')
+% hold on
+% plot(r, ptemp_cw(r), 'b')
+% hold off
+% xlabel('r')
+% ylabel('ptemp')
+% title('Potential temperature profiles')
 
-% Plot the potential temperature in the grid overlayed with the original uw and cw cross-sections, centered at the updraft
+% Plot the potential temperature in the grid
 figure
 surf(xq,yq,ptemp, 'LineStyle','none')
 xlabel('x')
 ylabel('y')
 zlabel('ptemp')
 title('Potential temperature in the updraft')
-hold on
 
-% Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
-% Get x and y values of the meshgrid separately
-x = xq(1,:)';
-y = yq(:,1);
+% Create a updraft object with the same properties as the updraft
+updraft = Updraft(0,0,1);
+updraft.wind_dir = 0;
 
-% Evaluate the potential temperature at the x and y values
-ptemp_x = ptemp_uw(x./radius);
-ptemp_y = ptemp_cw(y./radius);
+% Calculate the potential temperature difference at the same positions as the grid
+ptemp_diff = zeros(size(xq));
+for i = 1:size(xq,1)
+    for j = 1:size(xq,2)
+        ptemp_diff(i,j) = updraft.ptemp_diff(xq(i,j),yq(i,j));
+    end
+end
 
-% Build vector for griddata function
-x_len = length(x);
-x = [x; zeros(length(y), 1)];
-y = [zeros(x_len, 1); y];
-ptemp = [ptemp_x; ptemp_y];
-
-% Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
-ptemp2 = griddata(x,y,ptemp,xq,yq,"linear");
-
-% Plot the interpolated values and the original values as a line plot
+% Plot the potential temperature difference in the grid
 figure
-surf(xq,yq,ptemp2, 'LineStyle','none')
+surf(xq,yq,ptemp_diff, 'LineStyle','none')
 xlabel('x')
 ylabel('y')
-zlabel('ptemp')
-title('Interpolated values of potential temperature in the updraft')
+zlabel('ptemp_diff')
+title('Potential temperature difference with perturbation')
+
+%
+% % Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
+% % Get x and y values of the meshgrid separately
+% x = xq(1,:)';
+% y = yq(:,1);
+% 
+% % Evaluate the potential temperature at the x and y values
+% ptemp_x = ptemp_uw(x./radius);
+% ptemp_y = ptemp_cw(y./radius);
+% 
+% % Build vector for griddata function
+% x_len = length(x);
+% x = [x; zeros(length(y), 1)];
+% y = [zeros(x_len, 1); y];
+% ptemp = [ptemp_x; ptemp_y];
+% 
+% % Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
+% ptemp2 = griddata(x,y,ptemp,xq,yq,"linear");
+% 
+% % Plot the interpolated values and the original values as a line plot
+% figure
+% surf(xq,yq,ptemp2, 'LineStyle','none')
+% xlabel('x')
+% ylabel('y')
+% zlabel('ptemp')
+% title('Interpolated values of potential temperature in the updraft')
