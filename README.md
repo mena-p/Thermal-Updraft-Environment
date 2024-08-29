@@ -1,5 +1,5 @@
 # Before starting...
-Make sure you are running Matlab version 2024a or above and have installed the [Aerospace Blockset](https://ch.mathworks.com/products/aerospace-blockset.html) and [Simulink Desktop Real-Time](https://ch.mathworks.com/products/simulink-desktop-real-time.html). The [real-time kernel](https://ch.mathworks.com/help/sldrt/ug/real-time-windows-target-kernel.html) should also be installed.
+Make sure you are running Matlab version 2024a or above and have installed the [Aerospace Blockset](https://ch.mathworks.com/products/aerospace-blockset.html).
 Clone the repository to your machine.
 
 # Setting up
