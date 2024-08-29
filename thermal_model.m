@@ -83,7 +83,7 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
     q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
 
     % Check if the aircraft is inside the nearest updraft
-    if is_inside(updrafts{updraft_index},x,y,z,sounding_data.zi)
+    %if is_inside(updrafts{updraft_index},x,y,z,sounding_data.zi)
         % We add the updraft's potential temperature and specific humidity excess to the
         % sounding data's values
         
@@ -103,5 +103,5 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
         %T = T + updrafts{updraft_index}.ptemp_diff(x,y);
         %q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
         
-    end
+    %end
 end
