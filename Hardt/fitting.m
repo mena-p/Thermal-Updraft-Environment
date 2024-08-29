@@ -38,11 +38,11 @@ tan(tan < 0) = tan(tan < 0) + 360;
 theta = tan - ori;
 
 % Calculate the potential temperature at each point in the grid
-ptemp = cos(theta/180*pi).^2 .*ptemp_uw(r./radius .*cos(theta./180*pi)) + sin(theta./180*pi).^2 .*ptemp_cw(r./radius .*sin(theta./180*pi));
+ptemp = cos(theta/180 *pi).^2 .*ptemp_uw(r./radius .*cos(theta./180 *pi)) + sin(theta./180 *pi).^2 .*ptemp_cw(r./radius .*sin(theta./180 *pi));
 
-% Calculate the weights of each profile based on the angle of the glider
-w_uw = cos(theta/180*pi).^2;
-w_cw = sin(theta/180*pi).^2;
+% Calculate the weights of each profile based on the angle of the glider (for plotting only)
+w_uw = cos(theta/180 *pi).^2;
+w_cw = sin(theta/180 *pi).^2;
 
 % % Plot the weights in the grid
 % figure
@@ -80,7 +80,7 @@ zlabel('ptemp')
 title('Potential temperature in the updraft')
 
 % Create a updraft object with the same properties as the updraft
-updraft = Updraft(0,0,1);
+updraft = Updraft(1100,0,1);
 updraft.wind_dir = 0;
 
 % Calculate the potential temperature difference at the same positions as the grid
