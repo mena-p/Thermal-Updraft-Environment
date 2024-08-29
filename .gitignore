@@ -12,6 +12,7 @@
 # Saved variables
 *.mat
 !sounding_bus.mat
+!coeff_*.mat
 
 # Windows default autosave extension
 *.asv
