@@ -77,27 +77,31 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
     T = T(1,1);
     q = q(1,1);
 
+    % Add the updraft's potential temperature and specific humidity excess to the
+    % sounding data's values
+    T = T + updrafts{updraft_index}.ptemp_diff(x,y);
+    q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
+
     % Check if the aircraft is inside the nearest updraft
     if is_inside(updrafts{updraft_index},x,y,z,sounding_data.zi)
-        % We assume that the potential and virtual potential temperature
-        % are constant inside the updraft, since they are conserved
-        % quatities for adiabatic processes.
+        % We add the updraft's potential temperature and specific humidity excess to the
+        % sounding data's values
         
-        % Get (virtual) potential temperature values at the surface
-        Tp = sounding_data.PTEMP(1,1);
-        Tv = sounding_data.VTEMP(1,1);
+        %% Get (virtual) potential temperature values at the aircrafts height
+        %Tp = sounding_data.PTEMP(1,1);
+        %Tv = sounding_data.VTEMP(1,1);
 
-        % Calculate the temperature inside the updraft (Stull)
-        T = Tp * (p/100000)^0.286;
-
-        % T = T + updrafts{updraft_index}.ptemp_diff(x,y);
-        % q = q + updrafts{updraft_index}.humidity_diff(x,y);
+        %% Calculate the temperature inside the updraft (Stull)
+        %T = Tp * (p/100000)^0.286;
         
-        % Calculate mixing ratio inside the updraft (kg water/kg dry air)
-        r = 1/0.61 * (Tv/T - 1);
+        %% Calculate mixing ratio inside the updraft (kg water/kg dry air)
+        %r = 1/0.61 * (Tv/T - 1);
 
-        % Calculate specific humidity inside the updraft (kg water/kg moist air)
-        q = r/(1 + r);
+        %% Calculate specific humidity inside the updraft (kg water/kg moist air)
+        %q = r/(1 + r);
+
+        %T = T + updrafts{updraft_index}.ptemp_diff(x,y);
+        %q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
         
     end
 end
