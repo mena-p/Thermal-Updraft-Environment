@@ -1,7 +1,7 @@
 classdef Updraft
     properties
-        xPosition {mustBeNumeric}
-        yPosition {mustBeNumeric}
+        latitude {mustBeNumeric}
+        longitude {mustBeNumeric}
         gain {mustBeNumeric}
         timeSinceFormation {mustBeNumeric}
         wind_dir {mustBeNumeric}
@@ -10,12 +10,12 @@ classdef Updraft
     end
 
     methods
-        function obj = Updraft(x, y, gain)
-            obj.xPosition = x;
-            obj.yPosition = y;
+        function obj = Updraft(lat, lon, gain)
+            obj.latitude = lat;
+            obj.longitude = lon;
             obj.gain = gain;
             obj.timeSinceFormation = 0;
-            obj.wind_dir = 350;
+            obj.wind_dir = rand(1)*360;
             obj.coeff_uw = Updraft.load_coeff_uw();
             obj.coeff_cw = Updraft.load_coeff_cw();
 
@@ -66,55 +66,55 @@ classdef Updraft
             inner_radius = ratio * outer_radius;
         end
 
-        function dist = distance_to(obj, x, y)
-            % This function calculates the distance from the aircraft to the updraft.
+        function dist = distance_to(obj, lat, lon)
+            % This function calculates the linear distance from the aircraft to the updraft
+            % on a wgs84 ellipsoid.
             % Inputs:
-            % x = Aircraft x position (m)
-            % y = Aircraft y position (m)
+            % lat = Aircraft latitude (degrees)
+            % lon = Aircraft longitude (degrees)
             % Outputs:
             % dist = Distance from the aircraft to the updraft (m)
-
-            dist = sqrt((x - obj.xPosition)^2 + (y - obj.yPosition)^2);
+            wgs84 = wgs84Ellipsoid("m");
+            dist = distance(lat, lon, obj.latitude, obj.longitude, wgs84);
         end
 
-        function angle_from_updraft = angle_to(obj, x, y)
-            % This function calculates the angle between the vector connecting
+        function angle_from_updraft = angle_to(obj, lat, lon)
+            % This function calculates the angle of the rhumb line connecting
             % the updraft center to the aircraft's position and the upwind
             % direction of the updraft (wind_dir).
             % Inputs:
-            % x = Aircraft x position (m)
-            % y = Aircraft y position (m)
+            % lat = Aircraft latitude (degrees)
+            % lon = Aircraft longitude (degrees)
             % Outputs:
             % angle_to_updraft (degrees)
-
-            angle_from_x_axis = atan2d(y - obj.yPosition, x - obj.xPosition);
-            if angle_from_x_axis < 0
-                angle_from_x_axis = angle_from_x_axis + 360;
+            wsg84 = wgs84Ellipsoid("m");
+            angle_to_north = azimuth("rh",lat,lon,obj.latitude,obj.longitude,wsg84,"degrees");
+            angle_from_updraft = angle_to_north - obj.wind_dir;
+            if angle_from_updraft < 0
+                angle_from_updraft = angle_from_updraft + 360;
             end
-            angle_from_updraft = angle_from_x_axis - obj.wind_dir;
         end
 
-        function is_inside = is_inside(obj, x, y, z, zi)
+        function is_inside = is_inside(obj, lat, lon, alt, zi)
             % This function checks if the aircraft is inside the updraft.
             % Inputs:
-            % x = Aircraft x position (m)
-            % y = Aircraft y position (m)
-            % z = Aircraft height above ground (m)
+            % lat = Aircraft latitude (degrees)
+            % lon = Aircraft longitude (degrees)
+            % alt = Aircraft height above ground (m)
             % Outputs:
             % is_inside = Boolean value indicating if the aircraft is inside the updraft
 
-            is_inside = obj.distance_to(x,y) < obj.outer_radius(z,zi);
-            
+            is_inside = obj.distance_to(lat,lon) < obj.outer_radius(alt,zi);
         end
 
-        function ptemp_diff = ptemp_diff(obj,x,y)
-            % This function calculates the potential temperature difference at the location x,y.
+        function ptemp_diff = ptemp_diff(obj,lat,lon)
+            % This function calculates the potential temperature difference at the location lat,lon.
             % Outputs:
             % ptemp_diff = Potential temperature difference at the aircraft's position
 
             % Get the angle and relative distance of the aircraft to the updraft
-            theta = obj.angle_to(x,y);
-            rel_dist = obj.distance_to(x,y) ./ obj.outer_radius(0,0);
+            theta = obj.angle_to(lat,lon);
+            rel_dist = obj.distance_to(lat,lon) ./ obj.outer_radius(0,0);
             rel_dist_uw = rel_dist.*cos(theta*pi/180);
             rel_dist_cw = rel_dist.*sin(theta*pi/180);
             
@@ -127,21 +127,21 @@ classdef Updraft
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the potential
             % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii 
-            if obj.distance_to(x,y) > obj.outer_radius(0,0) && obj.distance_to(x,y) <= 3 * obj.outer_radius(0,0)
-                ptemp_diff = ptemp_diff * (1 - (obj.distance_to(x,y) - obj.outer_radius(0,0)) / (2*obj.outer_radius(0,0)));
-            elseif obj.distance_to(x,y) > 3 * obj.outer_radius(0,0)
+            if obj.distance_to(lat,lon) > obj.outer_radius(0,0) && obj.distance_to(lat,lon) <= 3 * obj.outer_radius(0,0)
+                ptemp_diff = ptemp_diff * (1 - (obj.distance_to(lat,lon) - obj.outer_radius(0,0)) / (2*obj.outer_radius(0,0)));
+            elseif obj.distance_to(lat,lon) > 3 * obj.outer_radius(0,0)
                 ptemp_diff = 0;
             end
         end
 
-        function humidity_diff = humidity_diff(obj,x,y)
+        function humidity_diff = humidity_diff(obj,lat,lon)
             % This function calculates the specific humidity difference at the aircraft's position.
             % Outputs:
             % humidity_diff = Specific humidity difference at the aircraft's position
 
             % Get the angle and relative distance of the aircraft to the updraft
-            theta = obj.angle_to(x,y);
-            rel_dist = obj.distance_to(x,y) / obj.outer_radius(0,0);
+            theta = obj.angle_to(lat,lon);
+            rel_dist = obj.distance_to(lat,lon) / obj.outer_radius(0,0);
             rel_dist_uw = rel_dist*cos(theta*pi/180);
             rel_dist_cw = rel_dist*sin(theta*pi/180);
 
@@ -153,9 +153,9 @@ classdef Updraft
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the humidity
             % difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii 
-            if obj.distance_to(x,y) > obj.outer_radius(0,0) && obj.distance_to(x,y) <= 3 * obj.outer_radius(0,0)
-                humidity_diff = humidity_diff * (1 - (obj.distance_to(x,y) - obj.outer_radius(0,0)) / (2*obj.outer_radius(0,0)));
-            elseif obj.distance_to(x,y) > 3 * obj.outer_radius(0,0)
+            if obj.distance_to(lat,lon) > obj.outer_radius(0,0) && obj.distance_to(lat,lon) <= 3 * obj.outer_radius(0,0)
+                humidity_diff = humidity_diff * (1 - (obj.distance_to(lat,lon) - obj.outer_radius(0,0)) / (2*obj.outer_radius(0,0)));
+            elseif obj.distance_to(lat,lon) > 3 * obj.outer_radius(0,0)
                 humidity_diff = 0;
             end
         end
@@ -204,4 +204,3 @@ classdef Updraft
         end
     end
 end
-
