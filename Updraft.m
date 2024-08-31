@@ -74,7 +74,9 @@ classdef Updraft
             % lon = Aircraft longitude (degrees)
             % Outputs:
             % dist = Distance from the aircraft to the updraft (m)
-            wgs84 = wgs84Ellipsoid("m");
+            wgs84 = wgs84Ellipsoid();
+            coder.extrinsic('distance');
+            dist = zeros(1);
             dist = distance(lat, lon, obj.latitude, obj.longitude, wgs84);
         end
 
@@ -87,7 +89,9 @@ classdef Updraft
             % lon = Aircraft longitude (degrees)
             % Outputs:
             % angle_to_updraft (degrees)
-            wsg84 = wgs84Ellipsoid("m");
+            wsg84 = wgs84Ellipsoid();
+            coder.extrinsic('azimuth');
+            angle_to_north = zeros(1);
             angle_to_north = azimuth("rh",lat,lon,obj.latitude,obj.longitude,wsg84,"degrees");
             angle_from_updraft = angle_to_north - obj.wind_dir;
             if angle_from_updraft < 0
