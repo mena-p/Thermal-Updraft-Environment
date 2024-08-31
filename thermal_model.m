@@ -1,4 +1,4 @@
-function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
+function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_data)
     % This function calculates the temperature, specific humidity, and
     % pressure at the aircraft's position.
     % It checks if the aircraft is in an updraft and computes the
@@ -9,9 +9,9 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
     % temperature and specific humidity.
     %
     % Inputs:
-    % x = Aircraft x position (m)
-    % y = Aircraft y position (m)
-    % z = Aircraft height above ground (m)
+    % lat = Aircraft latitude (degrees)
+    % lon = Aircraft longitude (degrees)
+    % alt = Aircraft height above ground (m)
     % updrafts = A CELL array of updraft objects (code generation
     %            requires this to be a cell array)
     %
@@ -30,20 +30,20 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
     
     % Check if there are no updrafts
     if num_updrafts == 0
-        error('No updrafts were provided');
+        error('No updrafts were provided. Use the Updrafts panel to place updrafts on the map.');
     end
 
     % Make an array with the positions of the updrafts
     updraft_positions = zeros(length(updrafts),2);
     for i = 1:num_updrafts
-        updraft_positions(i,1) = updrafts{i}.xPosition;
-        updraft_positions(i,2) = updrafts{i}.yPosition;
+        updraft_positions(i,1) = updrafts{i}.latitude;
+        updraft_positions(i,2) = updrafts{i}.longitude;
     end
 
     % Calculate distance to each updraft
     dist = zeros(num_updrafts,1);
     for i = 1:num_updrafts
-        dist(i) = updrafts{i}.distance_to(x,y);
+        dist(i) = updrafts{i}.distance_to(lat,lon);
     end
 
     % Find the nearest updraft
@@ -52,14 +52,14 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
     updraft_index = indices(1,1);
 
     % Round aircraft height to nearest integer
-    z = round(z);
-    z_top = z + 0.01;
-    z_bottom = z - 0.01;
+    alt = round(alt);
+    alt_top = alt + 0.01;
+    alt_bottom = alt - 0.01;
 
     % Find indices with geopotential height equal to aircraft height
     % The comparison is made in this manner to account for floating- 
     % point precision
-    logical_mask = (sounding_data.REPGPH <= z_top & sounding_data.REPGPH >= z_bottom);
+    logical_mask = (sounding_data.REPGPH <= alt_top & sounding_data.REPGPH >= alt_bottom);
 
     % Check if logical mask contains only zeros
     if ~any(logical_mask)
@@ -79,8 +79,8 @@ function [T,q,p] = thermal_model(x,y,z,updrafts,sounding_data)
 
     % Add the updraft's potential temperature and specific humidity excess to the
     % sounding data's values
-    T = T + updrafts{updraft_index}.ptemp_diff(x,y);
-    q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
+    T = T + updrafts{updraft_index}.ptemp_diff(lat,lon);
+    q = q + updrafts{updraft_index}.humidity_diff(lat,lon)/1000;
 
     % Check if the aircraft is inside the nearest updraft
     %if is_inside(updrafts{updraft_index},x,y,z,sounding_data.zi)
