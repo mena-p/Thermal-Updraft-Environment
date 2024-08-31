@@ -35,7 +35,7 @@ octave-workspace
 *.r2021b
 
 # Project folders
-resources/
+
 
 # Other specific files
 testing.m
