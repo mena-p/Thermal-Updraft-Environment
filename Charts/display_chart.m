@@ -13,32 +13,31 @@ traj_lon = trajectory(2,:);
 assignin('base', 'traj_lat', traj_lat)
 assignin('base', 'traj_lon', traj_lon)
 
-
+% Get handle for simulink workspace
+mdlWks = get_param('model','ModelWorkspace');
 
 % Load updrafts objects from the workspace if they exist
-if evalin('base', 'exist(''updrafts'', ''var'')')
-    updrafts = evalin('base', 'updrafts');
+if evalin(mdlWks, 'exist(''updraft_locations'', ''var'')')
+    updraft_locations = evalin(mdlWks, 'updraft_locations');
 else
-    updrafts = {};
-    assignin('base', 'updrafts', updrafts)
+    % Create empty 2d array for updrafts
+    updraft_locations = zeros(0, 0);
+    assignin(mdlWks, 'updraft_locations', updraft_locations)
 end
 
 
-
-% Create a figure
+% Plot trajectory and updrafts
 figure
 % Create a geographic plot of the aircraft trajectory
 geoplot(traj_lat, traj_lon, 'b-')
-% Add a title
 title('Aircraft Trajectory')
-% Add a legend
 legend('Aircraft Trajectory')
 
 % Add updraft locations to the plot
-if ~isempty(updrafts)
+if ~isempty(updraft_locations)
     hold on
-    for i = 1:size(updrafts)
-        geoscatter(updrafts{i}.latitude, updrafts{i}.longitude, 'r', 'filled')
+    for i = 1:size(updraft_locations,2)
+        geoscatter(updraft_locations(1,i), updraft_locations(2,i), 'r', 'filled')
     end
     hold off
 end
@@ -46,39 +45,36 @@ end
 % Create button to enter updraft locations
 uicontrol('Style', 'pushbutton', 'String', 'Add Updraft', 'Position', [20 20 100 30], 'Callback', @add_updraft)
 
-% Create button to delete an updraft
+% Create button to delete all updrafts
 uicontrol('Style', 'pushbutton', 'String', 'Reset', 'Position', [140 20 100 30], 'Callback', @delete_updrafts)
 
 % Callback function to add updraft locations
     function add_updraft(src, event)
-        % Allow the user to select a point on the map
+
+        % Get latitude and longitude from user input
         [lat, lon] = ginput(1);
 
-        updrafts = evalin('base', 'updrafts');
+        % Load updrafts locations from model workspace
+        updraft_locations = evalin(mdlWks, 'updraft_locations');
 
-        updraft = Updraft(lat, lon, 1);
-
-        % Append the updraft location in the output variable
-        updrafts(end+1) = {updraft};
+        % Append the updraft to the array
+        updraft_locations(:,end+1) = [lat lon];
 
         % Save the changes to the workspace variable
-        assignin('base', 'updrafts', updrafts)
+        assignin(mdlWks, 'updraft_locations', updraft_locations)
 
         % Re-plot the updraft locations
         hold on
-        geoscatter(updraft.latitude, updraft.longitude, 'r', 'filled')
+        geoscatter(lat, lon, 'r', 'filled')
         hold off
     end
-end
 
-% Callback function to delete an updraft
-function delete_updrafts(src, event)
-    % Load updrafts objects from the workspace
-    updrafts = {};
-    assignin('base', 'updrafts', updrafts)
-
-    % Clear updrafr locations from the plot
-    delete(findobj('Type', 'Scatter'))
+    % Callback function to delete an updraft
+    function delete_updrafts(src, event)
+        % Load updrafts objects from the workspace
+        assignin(mdlWks, 'updraft_locations',[]);
     
+        % Clear updrafr locations from the plot
+        delete(findobj('Type', 'Scatter'))
+    end
 end
-
