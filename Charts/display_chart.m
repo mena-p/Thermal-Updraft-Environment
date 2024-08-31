@@ -38,7 +38,7 @@ legend('Aircraft Trajectory')
 if ~isempty(updrafts)
     hold on
     for i = 1:size(updrafts)
-        geoscatter(updrafts{i}.xPosition, updrafts{i}.yPosition, 'r', 'filled')
+        geoscatter(updrafts{i}.latitude, updrafts{i}.longitude, 'r', 'filled')
     end
     hold off
 end
@@ -66,7 +66,7 @@ uicontrol('Style', 'pushbutton', 'String', 'Reset', 'Position', [140 20 100 30],
 
         % Re-plot the updraft locations
         hold on
-        geoscatter(updraft.xPosition, updraft.yPosition, 'r', 'filled')
+        geoscatter(updraft.latitude, updraft.longitude, 'r', 'filled')
         hold off
     end
 end
