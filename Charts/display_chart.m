@@ -19,7 +19,7 @@ assignin('base', 'traj_lon', traj_lon)
 if evalin('base', 'exist(''updrafts'', ''var'')')
     updrafts = evalin('base', 'updrafts');
 else
-    updrafts = [];
+    updrafts = {};
     assignin('base', 'updrafts', updrafts)
 end
 
@@ -38,7 +38,7 @@ legend('Aircraft Trajectory')
 if ~isempty(updrafts)
     hold on
     for i = 1:size(updrafts)
-        geoscatter(updrafts(i).xPosition, updrafts(i).yPosition, 'r', 'filled')
+        geoscatter(updrafts{i}.xPosition, updrafts{i}.yPosition, 'r', 'filled')
     end
     hold off
 end
@@ -59,7 +59,7 @@ uicontrol('Style', 'pushbutton', 'String', 'Reset', 'Position', [140 20 100 30],
         updraft = Updraft(lat, lon, 1);
 
         % Append the updraft location in the output variable
-        updrafts = [updrafts; updraft];
+        updrafts(end+1) = {updraft};
 
         % Save the changes to the workspace variable
         assignin('base', 'updrafts', updrafts)
@@ -74,7 +74,7 @@ end
 % Callback function to delete an updraft
 function delete_updrafts(src, event)
     % Load updrafts objects from the workspace
-    updrafts = [];
+    updrafts = {};
     assignin('base', 'updrafts', updrafts)
 
     % Clear updrafr locations from the plot
