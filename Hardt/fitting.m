@@ -80,20 +80,27 @@ zlabel('ptemp')
 title('Potential temperature in the updraft')
 
 % Create a updraft object with the same properties as the updraft
-updraft = Updraft(1100,0,1);
+updraft = Updraft(47.9724,11.796789,1);
 updraft.wind_dir = 0;
 
+% Generate vector of sample latitudes and longitudes
+lat = linspace(47.945243,47.999557,120);
+lon = linspace(11.756576,11.837002,120);
+
+% Create linspace out of the lat and lon vectors
+[lat, lon] = meshgrid(lat, lon);
+
 % Calculate the potential temperature difference at the same positions as the grid
-ptemp_diff = zeros(size(xq));
-for i = 1:size(xq,1)
-    for j = 1:size(xq,2)
-        ptemp_diff(i,j) = updraft.ptemp_diff(xq(i,j),yq(i,j));
+ptemp_diff = zeros(size(lat));
+for i = 1:size(lat,1)
+    for j = 1:size(lat,2)
+        ptemp_diff(i,j) = updraft.ptemp_diff(lat(i,j),lon(i,j));
     end
 end
 
 % Plot the potential temperature difference in the grid
 figure
-surf(xq,yq,ptemp_diff, 'LineStyle','none')
+surf(lat,lon,ptemp_diff, 'LineStyle','none')
 xlabel('x')
 ylabel('y')
 zlabel('ptemp_diff')
