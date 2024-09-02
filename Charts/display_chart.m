@@ -5,13 +5,10 @@ clc
 close all
 
 % Extract latitude, longitude and altitude coordinates from the trajectory
-traj_lat = trajectory(1,:);
-traj_lon = trajectory(2,:);
+traj_lat = trajectory.lat.lat;
+traj_lon = trajectory.lon.lon;
 %alt = trajectory(3,:);
 
-% save the trajectory to the workspace
-assignin('base', 'traj_lat', traj_lat)
-assignin('base', 'traj_lon', traj_lon)
 
 % Get handle for simulink workspace
 mdlWks = get_param('model','ModelWorkspace');
@@ -78,3 +75,6 @@ uicontrol('Style', 'pushbutton', 'String', 'Reset', 'Position', [140 20 100 30],
         delete(findobj('Type', 'Scatter'))
     end
 end
+
+% if array is empty, error
+% C
