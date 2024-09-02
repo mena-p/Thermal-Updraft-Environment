@@ -1,4 +1,4 @@
-function display_chart(trajectory)
+function display_chart(trajectory, stations)
 %DISPLAY_CHART Plots the aircraft trajectory and allows selection of updraft locations
 %   Detailed explanation goes here
 clc
@@ -23,12 +23,28 @@ else
 end
 
 
-% Plot trajectory and updrafts
+% Plot trajectory
 figure
-% Create a geographic plot of the aircraft trajectory
-geoplot(traj_lat, traj_lon, 'b-')
+g = geoplot(traj_lat, traj_lon, 'b-');
 title('Aircraft Trajectory')
-legend('Aircraft Trajectory')
+%legend('Aircraft Trajectory')
+
+% Add stations to the plot
+hold on
+geoscatter(stations, "lat", "lon","Marker","^","MarkerEdgeColor","g")
+hold off
+
+% Show station names when hovering over the markers wohooooooooooooo
+dcm_obj = datacursormode(gcf);
+set(dcm_obj ,'UpdateFcn',@data_cursor_updatefcn)
+
+% Callback function to display station names
+function output_txt = data_cursor_updatefcn(~, event_obj)
+    % Display the position of the data cursor
+    pos = event_obj.Position;
+    idx = event_obj.DataIndex;
+    output_txt = {['Station: ' stations.code{idx}]};
+end
 
 % Add updraft locations to the plot
 if ~isempty(updraft_locations)
@@ -38,6 +54,9 @@ if ~isempty(updraft_locations)
     end
     hold off
 end
+
+% Set axis limits to fit the trajectory
+geolimits([min(traj_lat) max(traj_lat)], [min(traj_lon) max(traj_lon)])
 
 % Create button to enter updraft locations
 uicontrol('Style', 'pushbutton', 'String', 'Add Updraft', 'Position', [20 20 100 30], 'Callback', @add_updraft)
