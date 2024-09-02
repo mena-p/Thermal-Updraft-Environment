@@ -75,6 +75,3 @@ uicontrol('Style', 'pushbutton', 'String', 'Reset', 'Position', [140 20 100 30],
         delete(findobj('Type', 'Scatter'))
     end
 end
-
-% if array is empty, error
-% C
