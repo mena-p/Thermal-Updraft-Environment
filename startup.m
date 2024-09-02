@@ -1,13 +1,9 @@
 
 %% Loading Sounding Data
+
 % Try to load one sounding from the workspace, cacth the error if there is no sounding
-% Load sounding bus
 try
     load('sounding.mat');
-    % Convert the sounding object into a Simulink bus object of the type
-    % sounding_bus (defined in sounding_bus.mat)
-
-
 catch
     warning('Could not find a saved sounding. You must run the script "parse_sounding_live.mlx".');
 end
