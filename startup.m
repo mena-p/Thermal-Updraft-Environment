@@ -38,7 +38,7 @@ plot_sounding(reduced_sounding, 1.3);
 % Load most recent .mat file in Flights/ folder
 flights = dir('Flights/*.mat');
 if isempty(flights)
-    warning('No flights found in the Flights/ folder. You must select a flight (.mat or .igc) in the model panel.');
+    warning('No flights found in the Flights/ directory. You must select a flight (.mat or .igc) in the simulink model panel.');
 else
     load(['Flights/' flights(end).name]);
 end
