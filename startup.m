@@ -33,8 +33,9 @@ sounding_data_bus.REPRH = reduced_sounding.derived.REPRH/10;
 % height is used as the vertical coordinate.
 plot_sounding(reduced_sounding, 1.3);
 
-
-%% Loading Flight Data
+%% Load station data
+load("IGRA-Parser\stations.mat","stations");
+%% Load Flight Data
 % Load most recent .mat file in Flights/ folder
 flights = dir('Flights/*.mat');
 if isempty(flights)
