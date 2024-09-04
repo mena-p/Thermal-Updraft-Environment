@@ -1,8 +1,7 @@
-[positions, diameters] = detect_circles_igc(flight);
-
 
 clc
 close all
+[positions, diameters] = detect_circles_igc(flight);
 
 % Extract latitude, longitude and altitude coordinates from the trajectory
 traj_lat = flight.trajectory.lat.lat;
