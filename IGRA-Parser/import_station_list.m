@@ -30,7 +30,7 @@ end
 %	column11: double (%f)
 %   column12: double (%f)
 % For more information, see the TEXTSCAN documentation.
-formatSpec = '%11s%9f%10f%7f%*1C%3C%30s%*1f%4f%*1f%4f%f%[^\n\r]';
+formatSpec = '%11s%9f%10f%7f%4C%30s%5f%5f%f%[^\n\r]';
 
 %% Open the text file.
 fileID = fopen(filename,'r');
