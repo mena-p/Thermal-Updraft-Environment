@@ -20,7 +20,7 @@ end
 
 % Plot trajectory and stations
 figure
-geoplot(trajectory.lat.lat, trajectory.lon.lon, 'b-')
+geoplot(flight.trajectory.lat.lat, flight.trajectory.lon.lon, 'b-')
 hold on
 geoscatter([stations.lat], [stations.lon], 'r*')
 % voronoi([stations.lat], [stations.lon]);
