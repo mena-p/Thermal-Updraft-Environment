@@ -22,6 +22,8 @@ function stations = find_nearby_stations(flight, stations, max_dist)
     max_lon = max(trajectory.lon.lon);
     min_lat = min(trajectory.lat.lat);
     min_lon = min(trajectory.lon.lon);
+    mean_lat = mean(trajectory.lat.lat);
+    mean_lon = mean(trajectory.lon.lon);
     
     % Only keep stations working during the flight year
     mask = [stations.firstYear] <= datenum(date) & [stations.lastYear] ...
@@ -37,8 +39,10 @@ function stations = find_nearby_stations(flight, stations, max_dist)
         wgs84Ellipsoid);
     dist4 = distance([stations.lat], [stations.lon], min_lat, min_lon,...
         wgs84Ellipsoid);
+    dist5 = distance([stations.lat], [stations.lon], mean_lat, mean_lon,...
+        wgs84Ellipsoid);
 
     mask = dist1 < max_dist | dist2 < max_dist | dist3 < max_dist | ...
-        dist4 < max_dist;
+        dist4 < max_dist | dist5 < max_dist;
     stations = stations(mask,:);
 end
