@@ -85,4 +85,3 @@ flight = struct('date', date, 'pilot', pilot, 'glider', glider, 'registration', 
 name = strcat(string(flight.date), '_', flight.pilot);
 disp('IGC file parsed successfully.')
 end
-
