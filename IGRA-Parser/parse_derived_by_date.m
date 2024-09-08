@@ -52,6 +52,7 @@ function sounding = parse_derived_by_date(filename, date)
     lineCounter = 1;
     
     % Search for headers (check if line starts with '#')
+    disp('Searching for sounding...')
     while ischar(headerLine)  
         if headerLine(1) == '#' % header found
             
@@ -66,7 +67,8 @@ function sounding = parse_derived_by_date(filename, date)
                 lineCounter = lineCounter + 1;
                 continue
             end
-    
+            
+            disp('Sounding found! Parsing...')
             % Parse header information into sounding attributes. Some 
             % atributes are always available, some are not and need special
             % treatment.
@@ -241,11 +243,14 @@ function sounding = parse_derived_by_date(filename, date)
             data = derived_to_table(filename, lineCounter+1,...
                 lineCounter+sounding.numLevels);
             sounding.derived = data;
+            disp("Done.")
             return
         end
         headerLine = fgetl(file);
         lineCounter = lineCounter + 1;
     end
-
+    % If the sounding is not found, return an empty array
+    warning('Sounding not found, returning empty array.')
+    sounding = [];
     fclose(file);
     end
