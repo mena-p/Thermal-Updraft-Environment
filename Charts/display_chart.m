@@ -35,6 +35,7 @@ geolimits([min(traj_lat) max(traj_lat)], [min(traj_lon) max(traj_lon)])
 % Add stations to the plot
 hold on
 geoscatter(stations, "lat", "lon","Marker","^","MarkerEdgeColor","g")
+%voronoi([stations.lat], [stations.lon]);
 hold off
 
 % Show station names when hovering over the markers wohooooooooooooo
