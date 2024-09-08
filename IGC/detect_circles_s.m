@@ -1,7 +1,7 @@
 
 clc
 close all
-[positions, diameters] = detect_circles_igc(flight);
+[positions] = detect_thermals_igc(flight.trajectory);
 
 % Extract latitude, longitude and altitude coordinates from the trajectory
 traj_lat = flight.trajectory.lat.lat;
@@ -25,7 +25,10 @@ geolimits([min(traj_lat) max(traj_lat)], [min(traj_lon) max(traj_lon)])
 hold on
 for i = 1:length(positions)
     geoplot(positions(i,1), positions(i,2), 'ro', 'MarkerSize', 10)
-    geoplot(positions(i,1), positions(i,2), 'r-', 'LineWidth', 2)
+    %geoplot(positions(i,1), positions(i,2), 'r-', 'LineWidth', 2)
 end
 hold off
 
+% Plot trajectory in 3d using geoplot3
+g = geoglobe(uifigure);
+geoplot3(g,traj_lat, traj_lon, flight.trajectory.alt.alt, 'b-');
