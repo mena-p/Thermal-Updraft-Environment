@@ -57,7 +57,7 @@ fclose(fileID);
 % No unimportable data rules were applied during the import, so no post processing code is included. To generate code which works for unimportable data, select unimportable cells in a file and regenerate the script.
 
 %% Create output variable
-stations = table(dataArray{1:end-1}, 'VariableNames', {'code','lat','lon','elevation','state','name','firstYear','lastYear','numObs'});
+stations = table(dataArray{1:end-1}, 'VariableNames', {'ID','lat','lon','elevation','state','name','firstYear','lastYear','numObs'});
 
 %% Remove mobile stations (lat <= -90 or lat >= 90)
 stations = stations(stations.lat >= -90 & stations.lat <= 90, :);
