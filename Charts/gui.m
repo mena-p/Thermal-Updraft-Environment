@@ -117,7 +117,7 @@ function gui()
         updraft_locations = updraft_locations(idx,:);
         
         assignin("base", 'updraft_locations', updraft_locations)
-        updraft_plot = plot_updrafts();
+        plot_updrafts();
     end
 
     % Add thermal
@@ -149,7 +149,7 @@ function gui()
         assignin("base", 'updraft_locations', updraft_locations)
 
         % Re-plot the updraft locations
-        updraft_plot = plot_updrafts();
+        plot_updrafts();
     end
 
     % Remove thermal
@@ -171,6 +171,8 @@ function gui()
         % Get latitude and longitude from user input
         [lat, lon] = ginput(1);
 
+        fig.HandleVisibility = fhv;        % return original state
+
         % Find the index of the updraft to delete
         max_distance = 0.05;
         idx = find(sqrt((updraft_locations(:,1)-lat).^2 + (updraft_locations(:,2)-lon).^2) < max_distance, 1);
@@ -181,10 +183,8 @@ function gui()
         % Save the changes to the workspace variable
         assignin("base", 'updraft_locations', updraft_locations)
 
-        % Remove all updrafts from the plot
-        delete(findobj('Type', 'Scatter'))
-        fig.HandleVisibility = fhv;        % return original state
-        updraft_plot = plot_updrafts();
+        % Re-plot updrafts
+        plot_updrafts();
         
     end
 
@@ -196,14 +196,8 @@ function gui()
         end
         % Load updrafts objects from the workspace
         assignin("base", 'updraft_locations',[]);
-        % Dumb workaround since delete doesn't work with uifigure
-        fhv = fig.HandleVisibility;        % Current status
-        fig.HandleVisibility = 'callback'; % Temp change (or, 'on') 
-        set(0, 'CurrentFigure', fig)       % Make fig current
-
-        % Clear updraft locations from the plot
-        delete(findobj('Type', 'Scatter'))
-        fig.HandleVisibility = fhv;        % return original state
+        % Re-plot updraft
+        plot_updrafts();
     end
 
     %% Plotting functions
@@ -217,19 +211,20 @@ function gui()
     end
 
     % Plot updrafts
-    function plot = plot_updrafts()
+    function plot_updrafts()
         % Check if updraft_locations is loaded
         if ~evalin("base",'exist(''updraft_locations'', ''var'')')
             updraft_locations = zeros(0, 0);
             assignin("base", 'updraft_locations', updraft_locations)
         end
+
         updraft_locations = evalin("base",'updraft_locations');
-        
-        hold(ax,"on");
-        plot = geoscatter(updraft_locations(:,1), updraft_locations(:,2),'r',"Marker",'o',"Parent",ax);
-        hold(ax,"off");
+        if ~isempty(updraft_locations)
+            set(updraft_plot,'XData',updraft_locations(:,1),"YData",updraft_locations(:,2));
+        else
+            set(updraft_plot,'XData',[],"YData",[]);
+        end
     end
-    
     % Plot stations
     function show_stations()
         if ~evalin("base",'exist(''flight'', ''var'')')
