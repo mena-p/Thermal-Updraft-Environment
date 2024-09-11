@@ -3,9 +3,10 @@ function gui()
     all_fig = findall(0, 'type', 'figure');
     close(all_fig)
     
-    % Load data
+    % Load data and declare variables (function scope)
     load('stations.mat', 'stations');
     nearest = [];
+    soundings = [];
    
     
     %% Create UI components
@@ -13,13 +14,8 @@ function gui()
     grid = uigridlayout(fig,[1 2]);
     grid.ColumnWidth = {'1x','2x'};
     subgrid = uigridlayout(grid,[2 1]);
-
-    sounding_tbl = uitable(subgrid);
-    sounding_tbl.SelectionType = "row";
-    sounding_tbl.Multiselect = "on";
-    sounding_tbl.Data = table('Size',[1 2],'VariableTypes',["string",...
-        "datetime"],'VariableNames',["Station ID","Sounding time"]);
-
+    
+    % Plots
     ax = geoaxes(grid);
     traj_plot = geoplot(0,0,'-b','Parent',ax);
     hold(ax,"on")
@@ -31,6 +27,15 @@ function gui()
     set(active_station_plot,'XData',[],"YData",[]);
     set(nearest_station_plot,'XData',[],"YData",[]);
 
+    % Table
+    sounding_tbl = uitable(subgrid);
+    sounding_tbl.SelectionType = "row";
+    sounding_tbl.Multiselect = "on";
+    sounding_tbl.Data = table('Size',[1 2],'VariableTypes',["string",...
+        "datetime"],'VariableNames',["Station ID","Sounding time"]);
+    sounding_tbl.SelectionChangedFcn = @(src,event) select_soundings(src,event);
+
+    % Buttons
     bg = uibuttongroup(subgrid);
     b1 = uibutton(bg,"Text","Load flight","Position",[10 180 100 22]);
     b2 = uibutton(bg,"Text","Detect thermals","Position",[10 155 100 22]);
@@ -48,10 +53,8 @@ function gui()
     b5.ButtonPushedFcn = @(src,event) remove_all();
     b6.ButtonPushedFcn = @(src,event) download_data();
     b7.ButtonPushedFcn = @(src,event) find_soundings();
-
     
-    
-
+  
     % % Load data
     % try
     %     traj_plot = plot_flight();
@@ -61,11 +64,6 @@ function gui()
     %     updraft_plot = plot_updrafts();
     % catch
     % end
-    
-    
-    % % Configure table
-    % sounding_tbl.SelectionChangedFcn = @(src,event) plotTsunami(src,event,traj_plot);  
-    
     
     
     %% Button callback functions
@@ -241,7 +239,7 @@ function gui()
         set(nearest_station_plot,'XData',nearest.lat,"YData",nearest.lon);
     end
 
-    function soundings = find_soundings()
+    function find_soundings()
     
             if ~evalin("base",'exist(''flight'', ''var'')')
                 disp("Please load a flight first.")
@@ -249,37 +247,31 @@ function gui()
             end
             flight = evalin("base",'flight');
         
-            soundings = [];
+            found_soundings = [];
             for i = 1:size(nearest,1)
                 station = nearest(i,:);
                 filename = strcat('IGRA-Parser/soundings/', station.ID, '-drvd.txt');
                 found = parse_derived_by_date(filename, flight.date);
-                soundings = [soundings, found];
+                found_soundings = [found_soundings, found];
             end
-            t = struct2table(soundings);
+            soundings = struct2table(found_soundings);
+            t = soundings;
             vars = ["stationID","time"];
             newNames = ["Station ID","Sounding time"];
             t = renamevars(t,vars,newNames);
             t = t(:,newNames);
+
             % Configure table
             sounding_tbl.Data = t;
             sounding_tbl.SelectionType = "row";
             sounding_tbl.Multiselect = "on";
-      
     end
     %% Download data
     function download_data(src,event)
         download_station_files(nearest);
     end
 
-% % Plot tsunami data for each selected row
-% function plotTsunami(src,event,gb)
-% rows = event.Selection;
-% data = src.Data(rows,:);
-% gb.LatitudeData = data.Latitude;
-% gb.LongitudeData = data.Longitude;
-% gb.SizeData = data.MaxHeight;
-% end
+
 
 % Show station names when hovering over the markers wohooooooooooooo
 % gcm_obj = datacursormode(fig);
@@ -292,4 +284,17 @@ function gui()
 %         output_txt = {['Station: ' stations.ID{idx}]};
 % end
 
+    % Plot tsunami data for each selected row
+    function select_soundings(src,event)
+        rows = event.Selection;
+        if ~isempty(soundings)
+            selected_soundings = soundings(rows,:);
+            assignin("base","selected_soundings",selected_soundings);
+        else
+            disp('Find soundings first.')
+        end
+        
+    end
+
 end
+
