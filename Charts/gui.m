@@ -298,19 +298,48 @@ function gui()
         end
         
 
-        % Extract needed sounding data and interpolate missing values
+        % Load selected soundings
         selected_soundings = evalin("base", 'selected_soundings');
+
+        % Add lat and lon of the station to the selected soundings
+        for i = 1:size(selected_soundings,1)
+            station = selected_soundings(i,:);
+            lat = stations.lat(strcmp(stations.ID,station.stationID));
+            lon = stations.lon(strcmp(stations.ID,station.stationID));
+            selected_soundings.lat(i) = lat;
+            selected_soundings.lon(i) = lon;
+        end
+
+        % Extract sounding data and interpolate missing values
         selected_soundings_structs = table2struct(selected_soundings);
         for i = 1:size(selected_soundings_structs,1)
         	tmp = extract_sounding_data(selected_soundings_structs(i));
+            tmp = remove_values_above(tmp, 5000);
             reduced_soundings(i) = interpolate_missing(tmp);
         end
 
-        % Create array of sounding busses
-        sounding_busses = create_bus(reduced_soundings);
+        % Get lowest number of levels among all soundings
+        numLevels = min(arrayfun(@(x) length(x.derived.REPGPH), reduced_soundings));
 
-        % Send busses to base workspace
-        assignin("base", 'sounding_busses', sounding_busses);
+        % Reduce all soundings to the same number of levels
+        for i = 1:size(reduced_soundings,2)
+            reduced_soundings(i).derived(numLevels+1:end,:) = [];
+        end
+        disp('Capped soundings to the same height')
+
+        % Assign numLevels to base workspace
+        assignin("base", 'numLevels', numLevels);
+
+        % Create array of sounding busses
+        sounding_buses = create_bus(reduced_soundings);
+
+        % Assign busses to base workspace
+        assignin("base", 'sounding_buses', sounding_buses);
+
+        % Load sounding bus specification from sounding_bus.mat to base workspace
+        assignin("base", 'sounding', load('sounding_bus.mat').sounding);
+        disp('Loaded sounding bus specification')
+
         fprintf('\nThe model is ready to run.\n\n')
         
     end
