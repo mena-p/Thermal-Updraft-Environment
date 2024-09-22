@@ -1,4 +1,4 @@
-function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_data)
+function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     % This function calculates the temperature, specific humidity, and
     % pressure at the aircraft's position.
     % It checks if the aircraft is in an updraft and computes the
@@ -20,6 +20,10 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_data)
     % q = Specific humidity (kg/kg)
     % p = Pressure (Pa)
     
+    % Testing ------------------------------------------------------remova depois, só para testar. implemente compatibilidade com várias sondas
+    sounding_data = sounding_buses(1);
+
+
     % Initialize variables for code generation
     T = 0.0;
     q = 0.0;
@@ -41,14 +45,14 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_data)
     end
 
     % Calculate distance to each updraft
-    dist = zeros(num_updrafts,1);
+    dist_updrafts = zeros(num_updrafts,1);
     for i = 1:num_updrafts
-        dist(i) = updrafts{i}.distance_to(lat,lon);
+        dist_updrafts(i) = updrafts{i}.distance_to(lat,lon);
     end
 
     % Find the nearest updraft
-    min_dist = min(dist);
-    indices = find(dist == min_dist);
+    min_dist = min(dist_updrafts);
+    indices = find(dist_updrafts == min_dist);
     updraft_index = indices(1,1);
 
     % Round aircraft height to nearest integer
@@ -63,7 +67,10 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_data)
 
     % Check if logical mask contains only zeros
     if ~any(logical_mask)
-        error('Aircraft height is not in sounding data');
+        warning off backtrace
+        warning('Aircraft height is not in sounding data');
+        warning on backtrace
+        return;
     end
 
     % Get the sounding's pressure, temperature and specific humidity at that height
