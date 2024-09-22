@@ -7,10 +7,13 @@ disp('Parsing IGC file. Please wait...')
 fid = fopen(filepath);
 flag = 1;
 
-% Create a timetalbe to store the data
-trajectory.lat = timetable;
-trajectory.lon = timetable;
-trajectory.alt = timetable;
+% Create a timetable to store the data
+% Create vectors to store the data
+durations = [];
+latitudes = [];
+longitudes = [];
+altitudes = [];
+
 
 % Loop through the file and extract the data
 while ~feof(fid)
@@ -45,14 +48,14 @@ while ~feof(fid)
     if startsWith(line, 'B')
 
         if flag == 1
-            prev_time = datetime(line(2:7), 'InputFormat', 'HHmmss','TimeZone','UTC');
+            first_time = datetime(line(2:7), 'InputFormat', 'HHmmss','TimeZone','UTC');
             flag = 0;
         end
 
         % Extract the duration, latitude, longitude and altitude (DDMMmmm,DDDMMmmm,AAAAA)
         time = datetime(line(2:7), 'InputFormat', 'HHmmss','TimeZone','UTC');
-        duration = time - prev_time;
-        prev_time = time;
+        sec = time - first_time;
+        sec.Format = 's';
         lat = str2double(line(8:9)) + str2double(line(10:14))/60000;
         lon = str2double(line(16:18)) + str2double(line(19:23))/60000;
         if line(25) == 'A'
@@ -69,13 +72,22 @@ while ~feof(fid)
             lon = -lon;
         end
         
-        % Append the data to the timetable
-        trajectory.lat = [trajectory.lat; timetable(duration, lat)];
-        trajectory.lon = [trajectory.lon; timetable(duration, lon)];
-        trajectory.alt = [trajectory.alt; timetable(duration, alt)];
+        % Append data to the arrays
+        latitudes = [latitudes; lat];
+        longitudes = [longitudes; lon];
+        altitudes = [altitudes; alt];
+        durations = [durations; sec];
         
     end
 end
+
+% Create the trajectory timetables
+lat = latitudes;
+lon = longitudes;
+alt = altitudes;
+trajectory.lat = timetable(durations,lat);
+trajectory.lon = timetable(durations,lon);
+trajectory.alt = timetable(durations,alt);
 
 % Close the igc file
 fclose(fid);
