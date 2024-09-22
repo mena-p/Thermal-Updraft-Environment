@@ -7,7 +7,7 @@ function gui()
     load('stations.mat', 'stations');
     nearest = [];
     soundings = [];
-   
+    selected_soundings = [];
     
     %% Create UI components
     fig = uifigure("Position",[100 100 800 450]);
@@ -44,6 +44,7 @@ function gui()
     b5 = uibutton(bg,"Text","Remove all","Position",[10 80 100 22]);
     b6 = uibutton(bg,"Text","Download data","Position",[10 55 100 22]);
     b7 = uibutton(bg,"Text","Find soundings","Position",[10 30 100 22]);
+    b8 = uibutton(bg,"Text","Send to model","Position",[10 5 100 22]);
     
     % Configure buttons
     b1.ButtonPushedFcn = @(src,event) load_flight();
@@ -53,6 +54,7 @@ function gui()
     b5.ButtonPushedFcn = @(src,event) remove_all();
     b6.ButtonPushedFcn = @(src,event) download_data();
     b7.ButtonPushedFcn = @(src,event) find_soundings();
+    b8.ButtonPushedFcn = @(src,event) send_to_model();
     
   
     % % Load data
@@ -254,7 +256,8 @@ function gui()
                 found = parse_derived_by_date(filename, flight.date);
                 found_soundings = [found_soundings, found];
             end
-            soundings = struct2table(found_soundings);
+            %found_soundings = filter_soundings(found_soundings); 
+            soundings = struct2table(found_soundings,"AsArray",true);
             t = soundings;
             vars = ["stationID","time"];
             newNames = ["Station ID","Sounding time"];
@@ -271,7 +274,46 @@ function gui()
         download_station_files(nearest);
     end
 
+    %% Prepare everything for simulink
+    function send_to_model()
+        % Check if everything is ready
+        
+        if ~evalin("base",'exist(''flight'', ''var'')')
+            warning off backtrace
+            warning("Please load a flight first.")
+            warning on backtrace
+            return
+        elseif ~evalin("base",'exist(''updraft_locations'', ''var'')') || ...
+                isempty(evalin("base", 'updraft_locations'))
+            warning off backtrace
+            warning("Please add at least one thermal.")
+            warning on backtrace
+            return
+        elseif ~evalin("base",'exist(''selected_soundings'', ''var'')') ||...
+                size(evalin("base", 'selected_soundings'),1) == 0
+            warning off backtrace
+            warning("Please select at least one sounding.")
+            warning on backtrace
+            return
+        end
+        
 
+        % Extract needed sounding data and interpolate missing values
+        selected_soundings = evalin("base", 'selected_soundings');
+        selected_soundings_structs = table2struct(selected_soundings);
+        for i = 1:size(selected_soundings_structs,1)
+        	tmp = extract_sounding_data(selected_soundings_structs(i));
+            reduced_soundings(i) = interpolate_missing(tmp);
+        end
+
+        % Create array of sounding busses
+        sounding_busses = create_bus(reduced_soundings);
+
+        % Send busses to base workspace
+        assignin("base", 'sounding_busses', sounding_busses);
+        fprintf('\nThe model is ready to run.\n\n')
+        
+    end
 
 % Show station names when hovering over the markers wohooooooooooooo
 % gcm_obj = datacursormode(fig);
@@ -284,7 +326,7 @@ function gui()
 %         output_txt = {['Station: ' stations.ID{idx}]};
 % end
 
-    % Plot tsunami data for each selected row
+    % Select soundings from table
     function select_soundings(src,event)
         rows = event.Selection;
         if ~isempty(soundings)
@@ -295,6 +337,7 @@ function gui()
         end
         
     end
+
 
 end
 
