@@ -25,7 +25,11 @@ function reduced_sounding = extract_sounding_data(sounding)
     % extracted values, and no missing geopotential height values.
 
     % Initialize a reduced sounding object and copy the relevant attributes
-    reduced_sounding.stationID = sounding.stationID;
+    %reduced_sounding.stationID = sounding.stationID;
+    if isfield(sounding, 'lat') && isfield(sounding, 'lon')
+        reduced_sounding.lat = sounding.lat;
+        reduced_sounding.lon = sounding.lon;
+    end
     reduced_sounding.mixedLayerHeight = sounding.mixedLayerHeight;
     reduced_sounding.LCLheight = sounding.LCLheight;
 
