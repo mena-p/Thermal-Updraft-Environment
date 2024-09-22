@@ -261,7 +261,8 @@ function soundings = parse_derived_by_date(filename, date)
         lineCounter = lineCounter + 1;
     end
     % If the sounding is not found, return an empty array
-    warning('Sounding not found, returning empty array.')
-    sounding = [];
+    if isempty(soundings)
+        warning('Sounding not found, returning empty array.')
+    end
     fclose(file);
     end

@@ -10,5 +10,6 @@ function download_station_files(stations)
         unzip(outfilename,"IGRA-Parser/soundings/");
         delete(outfilename)
     end
+    fprintf('Finished downloading station files. Ready to find soundings\n');
 end
 

@@ -25,5 +25,7 @@ function interpolated_sounding = interpolate_missing(sounding)
     
     % Assign the interpolated table to the derived field of the new sounding object
     interpolated_sounding.derived = new_table;
+    
+    disp('Interpolated missing values in 1 meter intervals')
 
 end
