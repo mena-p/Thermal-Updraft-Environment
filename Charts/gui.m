@@ -314,7 +314,7 @@ function gui()
         selected_soundings_structs = table2struct(selected_soundings);
         for i = 1:size(selected_soundings_structs,1)
         	tmp = extract_sounding_data(selected_soundings_structs(i));
-            tmp = remove_values_above(tmp, 5000);
+            %tmp = remove_values_above(tmp, 5000);
             reduced_soundings(i) = interpolate_missing(tmp);
         end
 
