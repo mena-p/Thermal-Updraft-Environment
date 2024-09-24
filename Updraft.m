@@ -119,13 +119,11 @@ classdef Updraft
             % Get the angle and relative distance of the aircraft to the updraft
             theta = obj.angle_to(lat,lon);
             rel_dist = obj.distance_to(lat,lon) ./ obj.outer_radius(0,0);
-            rel_dist_uw = rel_dist.*cos(theta*pi/180);
-            rel_dist_cw = rel_dist.*sin(theta*pi/180);
             
             % Calculate the potential temperature difference at the aircraft's position
             % by averaging the upwind and crosswind profiles based on the angle to the updraft
-            ptemp_uw = obj.coeff_uw(1,1) + obj.coeff_uw(1,2)*cos(rel_dist_uw*obj.coeff_uw(1,6)) + obj.coeff_uw(1,3)*sin(rel_dist_uw*obj.coeff_uw(1,6)) + obj.coeff_uw(1,4)*cos(2*rel_dist_uw*obj.coeff_uw(1,6)) + obj.coeff_uw(1,5)*sin(2*rel_dist_uw*obj.coeff_uw(1,6));
-            ptemp_cw = obj.coeff_cw(1,1) + obj.coeff_cw(1,2)*cos(rel_dist_cw*obj.coeff_cw(1,6)) + obj.coeff_cw(1,3)*sin(rel_dist_cw*obj.coeff_cw(1,6)) + obj.coeff_cw(1,4)*cos(2*rel_dist_cw*obj.coeff_cw(1,6)) + obj.coeff_cw(1,5)*sin(2*rel_dist_cw*obj.coeff_cw(1,6));
+            ptemp_uw = obj.coeff_uw(1,1) + obj.coeff_uw(1,2)*cos(rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,3)*sin(rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,4)*cos(2*rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,5)*sin(2*rel_dist*obj.coeff_uw(1,6));
+            ptemp_cw = obj.coeff_cw(1,1) + obj.coeff_cw(1,2)*cos(rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,3)*sin(rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,4)*cos(2*rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,5)*sin(2*rel_dist*obj.coeff_cw(1,6));
             
             ptemp_diff = cos(theta*pi/180)^2 * ptemp_uw + sin(theta*pi/180)^2 * ptemp_cw;
 
@@ -146,12 +144,10 @@ classdef Updraft
             % Get the angle and relative distance of the aircraft to the updraft
             theta = obj.angle_to(lat,lon);
             rel_dist = obj.distance_to(lat,lon) / obj.outer_radius(0,0);
-            rel_dist_uw = rel_dist*cos(theta*pi/180);
-            rel_dist_cw = rel_dist*sin(theta*pi/180);
 
             % Calculate the specific humidity difference at the aircraft's position
-            hum_uw = obj.coeff_uw(2,1) + obj.coeff_uw(2,2)*cos(rel_dist_uw*obj.coeff_uw(2,6)) + obj.coeff_uw(2,3)*sin(rel_dist_uw*obj.coeff_uw(2,6)) + obj.coeff_uw(2,4)*cos(2*rel_dist_uw*obj.coeff_uw(2,6)) + obj.coeff_uw(2,5)*sin(2*rel_dist_uw*obj.coeff_uw(2,6));
-            hum_cw = obj.coeff_cw(2,1) + obj.coeff_cw(2,2)*cos(rel_dist_cw*obj.coeff_cw(2,6)) + obj.coeff_cw(2,3)*sin(rel_dist_cw*obj.coeff_cw(2,6)) + obj.coeff_cw(2,4)*cos(2*rel_dist_cw*obj.coeff_cw(2,6)) + obj.coeff_cw(2,5)*sin(2*rel_dist_cw*obj.coeff_cw(2,6));
+            hum_uw = obj.coeff_uw(2,1) + obj.coeff_uw(2,2)*cos(rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,3)*sin(rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,4)*cos(2*rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,5)*sin(2*rel_dist*obj.coeff_uw(2,6));
+            hum_cw = obj.coeff_cw(2,1) + obj.coeff_cw(2,2)*cos(rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,3)*sin(rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,4)*cos(2*rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,5)*sin(2*rel_dist*obj.coeff_cw(2,6));
 
             humidity_diff = cos(theta*pi/180)^2 * hum_uw + sin(theta*pi/180)^2 * hum_cw;
 
