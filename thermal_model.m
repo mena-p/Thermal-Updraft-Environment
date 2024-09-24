@@ -98,7 +98,11 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
 
     % Compute the weights for each soundings
     total_dist = sum(dist(used_soundings));
-    weights = 1 - (dist(used_soundings)./total_dist);
+    if (num_soundings > 1)
+        weights = 1 - (dist(used_soundings)./total_dist);
+    else
+        weights = ones(num_soundings);
+    end
 
     % Concatenate sounding data
     PRESS = [sounding_buses(used_soundings).PRESS];
