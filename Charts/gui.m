@@ -322,6 +322,8 @@ function gui()
         numLevels = min(arrayfun(@(x) length(x.derived.REPGPH), reduced_soundings));
 
         % Reduce all soundings to the same number of levels
+        % (soundings may still have measurements at different heights,
+        % but will have the same number of measurements)
         for i = 1:size(reduced_soundings,2)
             reduced_soundings(i).derived(numLevels+1:end,:) = [];
         end
