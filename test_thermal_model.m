@@ -11,12 +11,12 @@ num_iterations = length(lat);
 
 % Loop to test the thermal_model function
 for i = 1:num_iterations
-    [T, q, p, w] = updraft_model(lat(i), lon(i), alt(i), sounding_buses, updraft_locations);
-    %fprintf('Iteration %d: alt = %f, T = %f, q = %f, p = %f\n', i, alt(i), T, q, p);
-    fprintf('Iteration %d: alt = %f, w1 = %f, w2 = %f, sum = %f\n', i, alt(i), w(1), w(2), w(1)+w(2))
+    [T, q, p] = updraft_model(lat(i), lon(i), alt(i), sounding_buses, updraft_locations);
+    fprintf('Iteration %d: alt = %f, T = %f, q = %f, p = %f\n', i, alt(i), T, q, p);
+    %fprintf('Iteration %d: alt = %f, w1 = %f, w2 = %f, sum = %f\n', i, alt(i), w(1), w(2), w(1)+w(2))
 end
 
-function [T, q, p, w] = updraft_model(lat, lon, alt, sounding_buses, updraft_locations)
+function [T, q, p] = updraft_model(lat, lon, alt, sounding_buses, updraft_locations)
     num_updrafts = size(updraft_locations, 1);
     updrafts = cell(1, num_updrafts);
     
@@ -27,7 +27,7 @@ function [T, q, p, w] = updraft_model(lat, lon, alt, sounding_buses, updraft_loc
         for i = 1:num_updrafts
             updrafts{i} = Updraft(latitudes(i), longitudes(i), 1);
         end
-        [T, q, p, w] = thermal_model(lat, lon, alt, updrafts, sounding_buses);
+        [T, q, p] = thermal_model(lat, lon, alt, updrafts, sounding_buses);
     else
         % Suppress Simulink coder error
         T = 0;
