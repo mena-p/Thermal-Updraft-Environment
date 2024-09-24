@@ -4,9 +4,8 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     % It checks if the aircraft is in an updraft and computes the
     % temperature, specific humidity, and pressure accordingly. If
     % the aircraft is not in an updraft, it uses the values from the
-    % atmospheric sounding. If it is in an updraft, it assumes constant
-    % potential and virtual potential temperature to calculate the
-    % temperature and specific humidity.
+    % atmospheric soundings. If it is in an updraft, it adds the updraft's
+    % potential temperature and specific humidity excess to the sounding
     %
     % Inputs:
     % lat = Aircraft latitude (degrees)
@@ -28,6 +27,12 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     T = 0.0;
     q = 0.0;
     p = 0.0;
+
+    % Get the number of soundings
+    num_soundings = length(sounding_buses);
+
+    % Get the number of levels in the sounding data
+    numLevels = length(sounding_data.REPGPH);
 
     % Get the number of updrafts
     num_updrafts = length(updrafts);
@@ -61,24 +66,60 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     alt_bottom = alt - 0.01;
 
     % Find indices with geopotential height equal to aircraft height
-    % The comparison is made in this manner to account for floating- 
-    % point precision
-    logical_mask = (sounding_data.REPGPH <= alt_top & sounding_data.REPGPH >= alt_bottom);
+    % in all soundings contained in sounding_buses. The comparison is made in this manner to 
+    % account for floating-point precision errors.
+    logical_mask = false(numLevels,num_soundings);
+    used_soundings = false(num_soundings,1);
+    for i = 1:num_soundings
+        % Initialize logical mask (1 if aircraft height is in sounding data, 0 otherwise)
+        logical_mask(:,i) = (sounding_buses(i).REPGPH <= alt_top & sounding_buses(i).REPGPH >= alt_bottom);
+        % Initialize used soundings (1 if sounding contains aircraft height, 0 otherwise)
+        used_soundings(i) = any(logical_mask(:,i));
+    end
 
-    % Check if logical mask contains only zeros
-    if ~any(logical_mask)
+    % Check if no soundings contains the aircraft height
+    if ~any(used_soundings)
         warning off backtrace
         warning('Aircraft height is not in sounding data');
         warning on backtrace
         return;
     end
 
-    % Get the sounding's pressure, temperature and specific humidity at that height
-    p = sounding_data.PRESS(logical_mask,1);
-    T = sounding_data.TEMP(logical_mask,1);
-    vap_press = sounding_data.VAPPRESS(logical_mask,1);
+    % Compute the distance averaged pressure, temperature and specific humidity at that height
+
+    % Compute the distance to each station from the aircraft
+    dist = zeros(num_soundings,1);
+    wgs84 = wgs84Ellipsoid();
+    coder.extrinsic('distance');
+    for i = 1:num_soundings
+        
+        dist(i) = distance(lat, lon, sounding_buses(i).lat, sounding_buses(i).lon, wgs84);
+    end
+
+    % Compute the weights for each soundings
+    total_dist = sum(dist(used_soundings));
+    weights = 1 - (dist(used_soundings)./total_dist);
+
+    % Concatenate sounding data
+    PRESS = [sounding_buses(used_soundings).PRESS];
+    TEMP = [sounding_buses(used_soundings).TEMP];
+    VAPPRESS = [sounding_buses(used_soundings).VAPPRESS];
+
+    % Compute the weighted average
+    p = weights' * PRESS(logical_mask(:,used_soundings));
+    T = weights' * TEMP(logical_mask(:,used_soundings));
+    vap_press = weights' * VAPPRESS(logical_mask(:,used_soundings));
+
+    % Compute the mixing ratio and specific humidity
     r = 0.622 * vap_press/(p - vap_press); % mixing ratio (kg water/kg dry air)
     q = r/(1 + r); % specific humidity (kg water/kg moist air)
+
+    % Get the sounding's pressure, temperature and specific humidity at that height
+    %p = sounding_data.PRESS(logical_mask,1);
+    %T = sounding_data.TEMP(logical_mask,1);
+    %vap_press = sounding_data.VAPPRESS(logical_mask,1);
+    %r = 0.622 * vap_press/(p - vap_press); % mixing ratio (kg water/kg dry air)
+    %q = r/(1 + r); % specific humidity (kg water/kg moist air)
 
     p = p(1,1);
     T = T(1,1);
