@@ -10,12 +10,21 @@ function gui()
     selected_soundings = [];
     
     %% Create UI components
-    fig = uifigure("Position",[100 100 800 450]);
-    grid = uigridlayout(fig,[1 2]);
+    fig = uifigure("Position",[100 100 800 450],"Name",'Soarsense','Tag','GUI');
+    tabs = uitabgroup("Parent",fig,"Units","normalized","Position",[0 0 1 1]);
+    tab1 = uitab("Parent",tabs,"Title",	"Setup");
+    grid = uigridlayout(tab1,[1 2]);
     grid.ColumnWidth = {'1x','2x'};
     subgrid = uigridlayout(grid,[2 1]);
+    tab2 = uitab("Parent",tabs,"Title","Simulation");
+    grid2 = uigridlayout(tab2,[1 1]);
     
-    % Plots
+    % Plots Simulation Tab
+    ax2 = axes(grid2);
+    data_plot = plot(0,0,'-r','Parent',ax2,"Tag","dataPlot");
+    set(data_plot,'XData',[],"YData",[]);
+
+    % Plots Setup Tab
     ax = geoaxes(grid);
     traj_plot = geoplot(0,0,'-b','Parent',ax);
     hold(ax,"on")
