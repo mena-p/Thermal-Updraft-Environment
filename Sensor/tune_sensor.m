@@ -45,7 +45,7 @@ tau0 = linspace(0.01,10000,10);
 
 % Create a meshgrid
 [X,Y] = meshgrid(tau0,f0);
-
+Z = zeros(10,10);
 % Compute the optimal values for tau and f based on the starting values tau0 and f0
 for i = 1:10
     for j = 1:10
