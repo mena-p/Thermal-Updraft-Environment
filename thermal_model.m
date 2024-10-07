@@ -1,4 +1,4 @@
-function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
+function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     % This function calculates the temperature, specific humidity, and
     % pressure at the aircraft's position.
     % It checks if the aircraft is in an updraft and computes the
@@ -27,6 +27,7 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     T = 0.0;
     q = 0.0;
     p = 0.0;
+    RH = 0.0;
 
     % Get the number of soundings
     num_soundings = length(sounding_buses);
@@ -133,6 +134,14 @@ function [T,q,p] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     % sounding data's values
     T = T + updrafts{updraft_index}.ptemp_diff(lat,lon);
     q = q + updrafts{updraft_index}.humidity_diff(lat,lon)/1000;
+
+    % Compute relative humidity
+    r = q/(1 - q); % mixing ratio (kg water/kg dry air) after adding updraft's humidity excess
+    e = p * r/(0.622 + r)/100; % vapor pressure (hPa) after adding updraft's humidity excess
+    esat = 6.1094 * exp(17.625 * (T - 273.15)/(T - 273.15 + 243.04)); % saturated vapor pressure hPa
+    RH = e/esat;
+    RH = RH(1,1) * 100;
+
 
     % Check if the aircraft is inside the nearest updraft
     %if is_inside(updrafts{updraft_index},x,y,z,sounding_data.zi)
