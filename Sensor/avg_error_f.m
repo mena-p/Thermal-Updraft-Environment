@@ -4,7 +4,7 @@ function error = avg_error_f(tau, f,sensorData)
     elseif f < 0
         f = 0;
     end
-    n = 50000;
+    n = 500000;
     T_aircraft = zeros(1,n);
     T_modeled = zeros(1,n);
     err = zeros(1,n);
