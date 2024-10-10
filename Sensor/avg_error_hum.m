@@ -1,5 +1,5 @@
 function error = avg_error_hum(c,sensorData,sounding_buses)
-    n = 500000;
+    n = 609100;
     err = zeros(1,n);
     for i = 1:n
         alt = sensorData.gps_altitude(i);
