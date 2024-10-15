@@ -18,9 +18,6 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     % T = Temperature (K)
     % q = Specific humidity (kg/kg)
     % p = Pressure (Pa)
-    
-    % Testing ------------------------------------------------------remova depois, só para testar. implemente compatibilidade com várias sondas
-    sounding_data = sounding_buses(1);
 
 
     % Initialize variables for code generation
@@ -33,7 +30,7 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     num_soundings = length(sounding_buses);
 
     % Get the number of levels in the sounding data
-    numLevels = length(sounding_data.REPGPH);
+    numLevels = length(sounding_buses(1).REPGPH);
 
     % Get the number of updrafts
     num_updrafts = length(updrafts);
