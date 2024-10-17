@@ -1,10 +1,5 @@
 function error = avg_error_f(tau, f,sensorData)
-    if f > 1
-        f = 1;
-    elseif f < 0
-        f = 0;
-    end
-    n = 500000;
+    n = 20001; % tune on first 400 seconds, max 15km from aerodrome
     T_aircraft = zeros(1,n);
     T_modeled = zeros(1,n);
     err = zeros(1,n);
