@@ -1,4 +1,3 @@
-
 close all
 % Load data
 sensorData = importSensorData('pedro_csv.csv');
@@ -16,7 +15,11 @@ press = timetable(times, sensorData.pressure);
 hum = timetable(times, sensorData.humidity);
 vel_squared = timetable(times, sensorData.velocity.^2);
 
-n = 20001; % tune on first 400 seconds, max 15km from aerodrome
+for i = 1:length(flight.trajectory.press_alt.press_alt)
+    igc_press(i) = 1013.25 * (1 - flight.trajectory.press_alt.press_alt(i)/44307.694)^5.25530;
+end 
+
+n = length(sensorData.time);%20001; % tune on first 400 seconds, max 15km from aerodrome
 
 %% Humidity sensor model
 
@@ -106,9 +109,11 @@ correlation_press = corrcoef(press_comparison_vec);
 
     correlation_temp = corrcoef(temp_comparison_vec);
 
-    %% Plots
-
-  figure
-  scatter(modeled_temp(2:n),sensorData.temperature(2:n)+273.15);
-  figure
-  plot(times(2:n), sensorData.temperature(2:n)+273.15);
+%% Plots
+times_igc = flight.trajectory.press_alt.durations - seconds(898);
+figure
+plot(times,press.Var1)
+hold on
+plot(times_igc,igc_press)
+plot(times,modeled_press)
+legend('sensor','igc','modeled')
