@@ -21,8 +21,8 @@ function gui()
     
     % Plots Simulation Tab
     ax2 = axes(grid2);
-    data_plot = plot(0,0,'-r','Parent',ax2,"Tag","dataPlot");
-    set(data_plot,'XData',[],"YData",[]);
+    arrow_plot = quiver(0,0,1,1,'Parent',ax2,"Tag","arrowPlot");
+    %set(arrow_plot,'XData',[],"YData",[]);
 
     % Plots Setup Tab
     ax = geoaxes(grid);
