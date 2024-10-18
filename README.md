@@ -1,5 +1,5 @@
 # Before starting...
-Ensure you are running Matlab version 2024a or above and have installed the [Aerospace Blockset](https://ch.mathworks.com/products/aerospace-blockset.html).
+Ensure you are running Matlab version 2024a or above and have installed the [Aerospace Blockset](https://ch.mathworks.com/products/aerospace-blockset.html), the [Mapping Toolbox](https://www.mathworks.com/products/mapping.html), and the [Global Optimization Toolbox](https://www.mathworks.com/products/global-optimization.html).
 Clone the repository to your machine.
 
 # Using the environment
