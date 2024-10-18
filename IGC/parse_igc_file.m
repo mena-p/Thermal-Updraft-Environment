@@ -13,6 +13,7 @@ durations = [];
 latitudes = [];
 longitudes = [];
 altitudes = [];
+press_altitudes = [];
 
 
 % Loop through the file and extract the data
@@ -60,6 +61,7 @@ while ~feof(fid)
         lon = str2double(line(16:18)) + str2double(line(19:23))/60000;
         if line(25) == 'A'
             alt = str2double(line(31:35));
+            press_alt = str2double(line(26:30));
         else
             % Skip the line if the altitude is not available
             continue
@@ -76,6 +78,7 @@ while ~feof(fid)
         latitudes = [latitudes; lat];
         longitudes = [longitudes; lon];
         altitudes = [altitudes; alt];
+        press_altitudes = [press_altitudes; press_alt];
         durations = [durations; sec];
         
     end
@@ -85,9 +88,11 @@ end
 lat = latitudes;
 lon = longitudes;
 alt = altitudes;
+press_alt = press_altitudes;
 trajectory.lat = timetable(durations,lat);
 trajectory.lon = timetable(durations,lon);
 trajectory.alt = timetable(durations,alt);
+trajectory.press_alt = timetable(durations,press_alt);
 
 % Close the igc file
 fclose(fid);
