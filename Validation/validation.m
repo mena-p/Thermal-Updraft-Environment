@@ -18,8 +18,9 @@ vel_squared = timetable(times, sensorData.velocity.^2);
 for i = 1:length(flight.trajectory.press_alt.press_alt)
     igc_press(i) = 1013.25 * (1 - flight.trajectory.press_alt.press_alt(i)/44307.694)^5.25530;
 end 
-
-n = length(sensorData.time);%20001; % tune on first 400 seconds, max 15km from aerodrome
+%% Choose length of flight 
+% (use n=20001 for tuning, full sensor data for comparing pressure
+n = length(sensorData.time); %20001; % tune on first 400 seconds, max 15km from aerodrome
 
 %% Humidity sensor model
 
