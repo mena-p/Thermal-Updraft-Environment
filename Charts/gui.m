@@ -306,7 +306,6 @@ function gui()
             return
         end
         
-
         % Load selected soundings
         selected_soundings = evalin("base", 'selected_soundings');
 
@@ -336,7 +335,7 @@ function gui()
         for i = 1:size(reduced_soundings,2)
             reduced_soundings(i).derived(numLevels+1:end,:) = [];
         end
-        disp('Capped soundings to the same height')
+        disp('Capped soundings to the same number of levels')
 
         % Assign numLevels to base workspace
         assignin("base", 'numLevels', numLevels);
@@ -350,6 +349,16 @@ function gui()
         % Load sounding bus specification from sounding_bus.mat to base workspace
         assignin("base", 'sounding', load('sounding_bus.mat').sounding);
         disp('Loaded sounding bus specification')
+
+        % Initialize updrafts
+        updraft_locations = evalin("base", 'updraft_locations');
+        for i = 1:size(updraft_locations,1)
+            updrafts(i) = Updraft(updraft_locations(i,1),updraft_locations(i,2));
+        end
+
+        % Assign updrafts to base workspace
+        assignin("base", 'updrafts', updrafts);
+        disp('Initialized updrafts at selected locations')
 
         fprintf('\nThe model is ready to run.\n\n')
         

@@ -10,10 +10,10 @@ classdef Updraft
     end
 
     methods
-        function obj = Updraft(lat, lon, gain)
+        function obj = Updraft(lat, lon)
             obj.latitude = lat;
             obj.longitude = lon;
-            obj.gain = gain;
+            obj.gain = max(0.25,1+randn(1));
             obj.timeSinceFormation = 0;
             obj.wind_dir = rand(1)*360;
             obj.coeff_uw = Updraft.load_coeff_uw();
@@ -38,7 +38,7 @@ classdef Updraft
             if outer_radius < 10
                 outer_radius = 10; % limit small updrafts to 20m diameter
             end
-            outer_radius = 600;
+            outer_radius = 600 * obj.gain;
         end
 
         function inner_radius = inner_radius(obj,z,zi)
@@ -125,7 +125,7 @@ classdef Updraft
             ptemp_uw = obj.coeff_uw(1,1) + obj.coeff_uw(1,2)*cos(rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,3)*sin(rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,4)*cos(2*rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,5)*sin(2*rel_dist*obj.coeff_uw(1,6));
             ptemp_cw = obj.coeff_cw(1,1) + obj.coeff_cw(1,2)*cos(rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,3)*sin(rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,4)*cos(2*rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,5)*sin(2*rel_dist*obj.coeff_cw(1,6));
             
-            ptemp_diff = cos(theta*pi/180)^2 * ptemp_uw + sin(theta*pi/180)^2 * ptemp_cw;
+            ptemp_diff = obj.gain*(cos(theta*pi/180)^2 * ptemp_uw + sin(theta*pi/180)^2 * ptemp_cw);
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the potential
             % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii 
@@ -149,7 +149,7 @@ classdef Updraft
             hum_uw = obj.coeff_uw(2,1) + obj.coeff_uw(2,2)*cos(rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,3)*sin(rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,4)*cos(2*rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,5)*sin(2*rel_dist*obj.coeff_uw(2,6));
             hum_cw = obj.coeff_cw(2,1) + obj.coeff_cw(2,2)*cos(rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,3)*sin(rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,4)*cos(2*rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,5)*sin(2*rel_dist*obj.coeff_cw(2,6));
 
-            humidity_diff = cos(theta*pi/180)^2 * hum_uw + sin(theta*pi/180)^2 * hum_cw;
+            humidity_diff = obj.gain*(cos(theta*pi/180)^2 * hum_uw + sin(theta*pi/180)^2 * hum_cw);
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the humidity
             % difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii 
