@@ -36,6 +36,9 @@ function gui()
     ax3.Layout.Column = 1;
     position = geoplot(0,0,'-b','Parent',ax3,"Tag","position");
     set(position,'LatitudeData',[],'LongitudeData',[]);
+
+    % Thermals plot
+    thermal_plot = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
     
 
     % Arrow plot
