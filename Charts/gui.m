@@ -38,7 +38,8 @@ function gui()
     set(position,'LatitudeData',[],'LongitudeData',[]);
 
     % Thermals plot
-    thermal_plot = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
+    updraft_plot_sim = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
+    set(updraft_plot_sim,'XData',[],"YData",[]);
     
 
     % Arrow plot
@@ -259,8 +260,10 @@ function gui()
         updraft_locations = evalin("base",'updraft_locations');
         if ~isempty(updraft_locations)
             set(updraft_plot,'XData',updraft_locations(:,1),"YData",updraft_locations(:,2));
+            set(updraft_plot_sim,'XData',updraft_locations(:,1),"YData",updraft_locations(:,2));
         else
             set(updraft_plot,'XData',[],"YData",[]);
+            set(updraft_plot_sim,'XData',[],"YData",[]);
         end
     end
     % Plot stations
