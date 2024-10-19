@@ -20,9 +20,9 @@ function gui()
     grid2 = uigridlayout(tab2,[1 1]);
     
     % Plots Simulation Tab
-    ax2 = axes(grid2);
-    arrow_plot = quiver(0,0,1,1,'Parent',ax2,"Tag","arrowPlot");
-    %set(arrow_plot,'XData',[],"YData",[]);
+    ax2 = polaraxes("Parent",grid2);
+    arrow_plot = compassplot(0,1,'Parent',ax2,"Tag","arrowPlot");
+    set(ax2,"ThetaZeroLocation",'top',"ThetaDir",'clockwise')
 
     % Plots Setup Tab
     ax = geoaxes(grid);
