@@ -17,12 +17,38 @@ function gui()
     grid.ColumnWidth = {'1x','2x'};
     subgrid = uigridlayout(grid,[2 1]);
     tab2 = uitab("Parent",tabs,"Title","Simulation");
-    grid2 = uigridlayout(tab2,[1 1]);
+    grid2 = uigridlayout(tab2,[2 2]);
+    %subgrid2 = uigridlayout(grid2,[1 3]);
+
     
-    % Plots Simulation Tab
+    %% Plots Simulation Tab
+    % Instruments plot
+    subgrid2 = uigridlayout(grid2,[1 3]);
+    subgrid2.Layout.Row = 1;
+    subgrid2.Layout.Column = 2;
+    airspeed = uiaeroairspeed(subgrid2,"Tag","airspeed","Limits",[0 150]);
+    altimeter = uiaeroaltimeter(subgrid2,"Tag","altimeter");
+    climb = uiaeroclimb(subgrid2,"Tag","climb");
+
+    % Aircaft plot
+    ax3 = geoaxes(grid2);
+    ax3.Layout.Row = 1;
+    ax3.Layout.Column = 1;
+    position = geoplot(0,0,'-b','Parent',ax3,"Tag","position");
+    set(position,'LatitudeData',[],'LongitudeData',[]);
+    
+
+    % Arrow plot
     ax2 = polaraxes("Parent",grid2);
+    ax2.Layout.Row = 2;
+    ax2.Layout.Column = 2;
     arrow_plot = compassplot(0,1,'Parent',ax2,"Tag","arrowPlot");
     set(ax2,"ThetaZeroLocation",'top',"ThetaDir",'clockwise')
+
+    % Simulation controls
+    simControl = uisimcontrols(grid2);
+    simControl.Layout.Row = 2;
+    simControl.Layout.Column = 1;
 
     % Plots Setup Tab
     ax = geoaxes(grid);
