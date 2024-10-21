@@ -381,7 +381,7 @@ function gui()
         for i = 1:size(selected_soundings_structs,1)
         	tmp = extract_sounding_data(selected_soundings_structs(i));
             %tmp = remove_values_above(tmp, 5000);
-            reduced_soundings(i) = interpolate_missing(tmp);
+            reduced_soundings(i) = tmp %interpolate_missing(tmp);
         end
 
         % Get lowest number of levels among all soundings
