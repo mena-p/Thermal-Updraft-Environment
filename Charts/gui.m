@@ -9,29 +9,35 @@ function gui()
     soundings = [];
     selected_soundings = [];
     
-    %% Create UI components
+    %% Create main UI components
     fig = uifigure("Position",[100 100 800 450],"Name",'Soarsense','Tag','GUI');
     tabs = uitabgroup("Parent",fig,"Units","normalized","Position",[0 0 1 1]);
     tab1 = uitab("Parent",tabs,"Title",	"Setup");
     grid = uigridlayout(tab1,[1 2]);
     grid.ColumnWidth = {'1x','2x'};
     subgrid = uigridlayout(grid,[2 1]);
+    buttongrid = uigridlayout(subgrid,[5 2]);
+    buttongrid.Layout.Row = 2;
+    buttongrid.Layout.Column = 1;
     tab2 = uitab("Parent",tabs,"Title","Simulation");
-    grid2 = uigridlayout(tab2,[2 2]);
-    %subgrid2 = uigridlayout(grid2,[1 3]);
+    simulationGrid = uigridlayout(tab2,[1 2]);
+    simulationSubgridLeft = uigridlayout(simulationGrid,[2 1]);
+    simulationSubgridRight = uigridlayout(simulationGrid,[2 1]);
+    simulationSubgridLeft.RowHeight = {'9x','1x'};
+    simulationSubgridRight.RowHeight = {'3x','1x'};
 
     
     %% Plots Simulation Tab
     % Instruments plot
-    subgrid2 = uigridlayout(grid2,[1 3]);
-    subgrid2.Layout.Row = 1;
-    subgrid2.Layout.Column = 2;
-    airspeed = uiaeroairspeed(subgrid2,"Tag","airspeed","Limits",[0 150]);
-    altimeter = uiaeroaltimeter(subgrid2,"Tag","altimeter");
-    climb = uiaeroclimb(subgrid2,"Tag","climb");
+    instrimentSubgrid = uigridlayout(simulationSubgridRight,[1 3]);
+    instrimentSubgrid.Layout.Row = 2;
+    instrimentSubgrid.Layout.Column = 1;
+    airspeed = uiaeroairspeed(instrimentSubgrid,"Tag","airspeed","Limits",[0 150]);
+    altimeter = uiaeroaltimeter(instrimentSubgrid,"Tag","altimeter");
+    climb = uiaeroclimb(instrimentSubgrid,"Tag","climb");
 
     % Aircaft plot
-    ax3 = geoaxes(grid2);
+    ax3 = geoaxes(simulationSubgridLeft);
     ax3.Layout.Row = 1;
     ax3.Layout.Column = 1;
     position = geoplot(0,0,'-b','Parent',ax3,"Tag","position");
@@ -41,20 +47,20 @@ function gui()
     updraft_plot_sim = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
     set(updraft_plot_sim,'XData',[],"YData",[]);
     
-
     % Arrow plot
-    ax2 = polaraxes("Parent",grid2);
-    ax2.Layout.Row = 2;
-    ax2.Layout.Column = 2;
+    ax2 = polaraxes("Parent",simulationSubgridRight);
+    ax2.Layout.Row = 1;
+    ax2.Layout.Column = 1;
     arrow_plot = compassplot(0,1,'Parent',ax2,"Tag","arrowPlot");
+    title(ax2,"Body-axis VPT gradient direction")   
     set(ax2,"ThetaZeroLocation",'top',"ThetaDir",'clockwise')
 
     % Simulation controls
-    simControl = uisimcontrols(grid2);
+    simControl = uisimcontrols(simulationSubgridLeft);
     simControl.Layout.Row = 2;
     simControl.Layout.Column = 1;
 
-    % Plots Setup Tab
+    %% Setup tab plots
     ax = geoaxes(grid);
     traj_plot = geoplot(0,0,'-b','Parent',ax);
     hold(ax,"on")
@@ -68,6 +74,8 @@ function gui()
 
     % Table
     sounding_tbl = uitable(subgrid);
+    sounding_tbl.Layout.Row = 1;
+    sounding_tbl.Layout.Column = 1;
     sounding_tbl.SelectionType = "row";
     sounding_tbl.Multiselect = "on";
     sounding_tbl.Data = table('Size',[1 2],'VariableTypes',["string",...
@@ -75,15 +83,33 @@ function gui()
     sounding_tbl.SelectionChangedFcn = @(src,event) select_soundings(src,event);
 
     % Buttons
-    bg = uibuttongroup(subgrid);
-    b1 = uibutton(bg,"Text","Load flight","Position",[10 180 100 22]);
-    b2 = uibutton(bg,"Text","Detect thermals","Position",[10 155 100 22]);
-    b3 = uibutton(bg,"Text","Add thermal","Position",[10 130 100 22]);
-    b4 = uibutton(bg,"Text","Remove thermal","Position",[10 105 100 22]);
-    b5 = uibutton(bg,"Text","Remove all","Position",[10 80 100 22]);
-    b6 = uibutton(bg,"Text","Download data","Position",[10 55 100 22]);
-    b7 = uibutton(bg,"Text","Find soundings","Position",[10 30 100 22]);
-    b8 = uibutton(bg,"Text","Send to model","Position",[10 5 100 22]);
+    b1 = uibutton(buttongrid,"Text","Load flight");
+    b1.Layout.Row = 1;
+    b1.Layout.Column = 1;
+    b9 = uibutton(buttongrid,"Text","Create Flight");
+    b9.Layout.Row = 1;
+    b9.Layout.Column = 2;
+    b2 = uibutton(buttongrid,"Text","Detect thermals");
+    b2.Layout.Row = 2;
+    b2.Layout.Column = 1;
+    b3 = uibutton(buttongrid,"Text","Add thermal");
+    b3.Layout.Row = 2;
+    b3.Layout.Column = 2;
+    b4 = uibutton(buttongrid,"Text","Remove thermal");
+    b4.Layout.Row = 3;
+    b4.Layout.Column = 1;
+    b5 = uibutton(buttongrid,"Text","Remove all");
+    b5.Layout.Row = 3;
+    b5.Layout.Column = 2;
+    b6 = uibutton(buttongrid,"Text","Download data");
+    b6.Layout.Row = 4;
+    b6.Layout.Column = 1;
+    b7 = uibutton(buttongrid,"Text","Find soundings");
+    b7.Layout.Row = 4;
+    b7.Layout.Column = 2;
+    b8 = uibutton(buttongrid,"Text","Send to model");
+    b8.Layout.Row = 5;
+    b8.Layout.Column = 1;
     
     % Configure buttons
     b1.ButtonPushedFcn = @(src,event) load_flight();
