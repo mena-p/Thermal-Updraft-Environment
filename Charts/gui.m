@@ -36,16 +36,20 @@ function gui()
     altimeter = uiaeroaltimeter(instrimentSubgrid,"Tag","altimeter");
     climb = uiaeroclimb(instrimentSubgrid,"Tag","climb");
 
-    % Aircaft plot
+    
+    
+    % Aircaft and thermals plot
     ax3 = geoaxes(simulationSubgridLeft);
     ax3.Layout.Row = 1;
     ax3.Layout.Column = 1;
-    position = geoplot(0,0,'-b','Parent',ax3,"Tag","position");
-    set(position,'LatitudeData',[],'LongitudeData',[]);
-
-    % Thermals plot
     updraft_plot_sim = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
     set(updraft_plot_sim,'XData',[],"YData",[]);
+    hold(ax3,"on")
+    position = geoplot(0,0,'-b','Parent',ax3,'Tag','position');
+    set(position,'LatitudeData',[],'LongitudeData',[]);
+    hold(ax3,"off")
+
+    
     
     % Arrow plot
     ax2 = polaraxes("Parent",simulationSubgridRight);
@@ -381,7 +385,7 @@ function gui()
         for i = 1:size(selected_soundings_structs,1)
         	tmp = extract_sounding_data(selected_soundings_structs(i));
             %tmp = remove_values_above(tmp, 5000);
-            reduced_soundings(i) = tmp %interpolate_missing(tmp);
+            reduced_soundings(i) = tmp; %interpolate_missing(tmp);
         end
 
         % Get lowest number of levels among all soundings
