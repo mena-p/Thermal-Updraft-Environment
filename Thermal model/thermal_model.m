@@ -19,7 +19,7 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     % q = Specific humidity (kg/kg)
     % p = Pressure (Pa)
 
-
+tic()
     % Initialize variables for code generation
     T = 0.0;
     q = 0.0;
@@ -46,13 +46,12 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
         updraft_positions(i,1) = updrafts{i}.latitude;
         updraft_positions(i,2) = updrafts{i}.longitude;
     end
-tic()
+
     % Calculate distance to each updraft
     dist_updrafts = zeros(num_updrafts,1);
     for i = 1:num_updrafts
         dist_updrafts(i) = updrafts{i}.distance_to(lat,lon);
     end
-toc()
     % Find the nearest updraft
     min_dist = min(dist_updrafts);
     indices = find(dist_updrafts == min_dist);
@@ -75,7 +74,6 @@ toc()
 
     % Find indexes of the heights directly below and directly above the aircraft height
     logical_mask_below = REPGPH == max(REPGPH.*logical_mask_below,[],1);
-    logical_mask_below(:,1) = 0;
     REPGPH_temp = REPGPH;
     REPGPH_temp(~logical_mask_above) = NaN;
     logical_mask_above = REPGPH == min(REPGPH_temp.*logical_mask_above,[],1);
@@ -176,4 +174,5 @@ toc()
         %q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
         
     %end
+    toc()
 end
