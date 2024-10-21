@@ -25,7 +25,7 @@ function [T, q, p] = updraft_model(lat, lon, alt, sounding_buses, updraft_locati
         longitudes = updraft_locations(:, 2);
     
         for i = 1:num_updrafts
-            updrafts{i} = Updraft(latitudes(i), longitudes(i), 1);
+            updrafts{i} = Updraft(latitudes(i), longitudes(i));
         end
         [T, q, p] = thermal_model(lat, lon, alt, updrafts, sounding_buses);
     else
