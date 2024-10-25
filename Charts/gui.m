@@ -120,17 +120,7 @@ function gui()
     b6.ButtonPushedFcn = @(src,event) download_data();
     b7.ButtonPushedFcn = @(src,event) find_soundings();
     b8.ButtonPushedFcn = @(src,event) send_to_model();
-    
-  
-    % % Load data
-    % try
-    %     traj_plot = plot_flight();
-    % catch
-    % end
-    % try
-    %     updraft_plot = plot_updrafts();
-    % catch
-    % end
+    b9.ButtonPushedFcn = @(src,event) create_flight();
     
     
     %% Button callback functions
@@ -156,6 +146,163 @@ function gui()
         plot_flight();
         show_stations();
     end
+
+    % Create flight
+    % this functions allows the user to create a flight by clicking on the map
+    % the user can keep clicking to add more points to the flight, until he 
+    % presses enter to finish the flight
+    function create_flight()
+        % Open a new window where the user can create a flight
+        fig2 = uifigure("Position",[100 100 800 450],"Name",'Create Flight','Tag','createFlightGUI');
+        % Make it modal
+        fig2.WindowStyle = 'modal';
+        % Create a grid layout
+        createFlightGrid = uigridlayout(fig2,[1 2],"ColumnWidth",{'1x','2x'});
+        createFlightSubgrid = uigridlayout(createFlightGrid,[2 1],"RowHeight",{'8x','2x'});
+        createFlightSubgrid.Layout.Column = 1;
+        createFlightSubsubgrid = uigridlayout(createFlightSubgrid,[2 2]);
+        createFlightSubsubgrid.Layout.Row = 2;
+        % Create a table to store waypoints and choose velocity and altitude
+        createFlightTable = uitable(createFlightSubgrid);
+        createFlightTable.Layout.Row = 1;
+        createFlightTable.Layout.Column = 1;
+        createFlightTable.Data = table('Size',[1 3],'VariableTypes',["uint32","double","double"],...
+            'VariableNames',["Waypoint","Altitude","Velocity"]);
+        % Make table editable
+        createFlightTable.ColumnEditable = [false true true];
+        % Clear table values
+        createFlightTable.Data = [];
+        % Create a map
+        axFlight = geoaxes(createFlightGrid);
+        axFlight.Layout.Row = 1;
+        axFlight.Layout.Column = 2;
+        % Create a plot for the flight
+        flight_plot = geoplot(0,0,'-b','Parent',axFlight,"Tag","createFlightPlot");
+        set(flight_plot,'LatitudeData',[],'LongitudeData',[]);
+        % Create buttons to start selecting waypoints, reset the flight and finish the flight
+        bStart = uibutton(createFlightSubsubgrid,"Text","Select waypoints");
+        bStart.Layout.Row = 1;
+        bStart.Layout.Column = 1;
+        bReset = uibutton(createFlightSubsubgrid,"Text","Reset flight");
+        bReset.Layout.Row = 1;
+        bReset.Layout.Column = 2;
+        bCancel = uibutton(createFlightSubsubgrid,"Text","Cancel");
+        bCancel.Layout.Row = 2;
+        bCancel.Layout.Column = 1;
+        bFinish = uibutton(createFlightSubsubgrid,"Text","Accept");
+        bFinish.Layout.Row = 2;
+        bFinish.Layout.Column = 2;
+
+        % Create callback functions for the buttons
+        bStart.ButtonPushedFcn = @(src,event) start_flight();
+        bReset.ButtonPushedFcn = @(src,event) reset_flight();
+        bCancel.ButtonPushedFcn = @(src,event) cancel_flight();
+        bFinish.ButtonPushedFcn = @(src,event) accept_flight();
+        
+        % Start flight
+        function start_flight()
+            
+            % Dumb workaround since ginput doesn't work with uifigure
+            fhv = fig2.HandleVisibility;        % Current status
+            fig2.HandleVisibility = 'callback'; % Temp change (or, 'on') 
+            set(0, 'CurrentFigure', fig)       % Make fig current
+            
+            % Start selecting waypoints
+            [lat, lon] = ginput();
+
+            fig2.HandleVisibility = fhv;        % return original state
+
+            % Check if there are at least two waypoints
+            if size(lat,1) < 2
+                disp("Please select at least two waypoints.")
+                return
+            end
+
+            % Add the waypoints to the plot
+            set(flight_plot,'LatitudeData',lat,'LongitudeData',lon);
+            % Show waypoint number on the map
+            text(lat,lon,string(1:size(lat,1)),'Parent',axFlight);
+
+            % Add the waypoints to the table with default values
+            data = table((1:size(lat,1))',1000*ones(size(lat,1),1),50*ones(size(lat,1),1),...
+                'VariableNames',["Waypoint","Altitude","Velocity"]);
+            createFlightTable.Data = data;
+        end
+
+        % Reset flight
+        function reset_flight()
+            % Clear the plot and the table
+            set(flight_plot,'LatitudeData',[],'LongitudeData',[]);
+            createFlightTable.Data = [];
+            % Clear the waypoint text
+            delete(findobj(axFlight,'Type','text'));
+        end
+
+        % Cancel flight
+        function cancel_flight()
+            reset_flight();
+            % Close the window
+            close(fig2)
+        end
+
+        % Accept flight
+        function accept_flight()
+            % Create a time series from waypoints and velocities
+            lat = flight_plot.LatitudeData;
+            lon = flight_plot.LongitudeData;
+
+            % Get velocity and altitude from the table for each waypoint
+            data = createFlightTable.Data;
+            alt = data.Altitude;
+            vel = data.Velocity;
+            wgs84 = wgs84Ellipsoid("m");
+            time = zeros(size(lat,2),1);
+
+            % Get the distance between waypoints
+            for i = 2:size(lat,2)
+                dist(i) = distance(lat(i-1),lon(i-1),lat(i),lon(i),wgs84);
+            end
+
+            % Compute elapsed time between waypoints
+            time = dist'./vel + time(1); % time in seconds
+
+            % Compute array with number of interpolation intervals between waypoints (0.02s)
+            num_intervals = int32(time./0.02); % 0.02s is the sample time of the model
+
+            % Interpolate waypoints based on the number of intervals in num_intervals(i)
+            new_lat = [];
+            new_lon = [];
+            new_alt = [];
+            for i = 2:size(lat,2)
+                new_lat = [new_lat; linspace(lat(i-1),lat(i),num_intervals(i))'];
+                new_lon = [new_lon; linspace(lon(i-1),lon(i),num_intervals(i))'];
+                new_alt = [new_alt; linspace(alt(i-1),alt(i),num_intervals(i))'];
+            end
+
+            % Create a new flight object
+            flight.date = datetime('now');
+            flight.pilot = "User-defined";
+            flight.aircraft = "User-defined";
+            flight.registration = "D-XXXX";
+            durations = seconds(0:0.02:sum(time))';
+            durations = durations(1:end-1);
+            flight.trajectory.lat = timetable(durations,new_lat,'VariableNames',{'lat'});
+            flight.trajectory.lon = timetable(durations,new_lon,'VariableNames',{'lon'});
+            flight.trajectory.alt = timetable(durations,new_alt,'VariableNames',{'alt'});
+
+            % Save the flight to the workspace
+            assignin("base",'flight',flight);
+
+            % Close the window
+            close(fig2)
+
+            % Plot the flight trajectory
+            plot_flight();
+
+            
+        end
+    end
+
 
     % Detect thermals
     function detect_thermals()
@@ -422,16 +569,16 @@ function gui()
         
     end
 
-% Show station names when hovering over the markers wohooooooooooooo
-% gcm_obj = datacursormode(fig);
-% set(gcm_obj,'UpdateFcn',@data_cursor_updatefcn)
-% % Callback function to display station names
-% function output_txt = data_cursor_updatefcn(~, event_obj)
-%     % Display the position of the data cursor
-%     pos = event_obj.Position;
-%     idx = event_obj.DataIndex;
-%         output_txt = {['Station: ' stations.ID{idx}]};
-% end
+    % Show station names when hovering over the markers wohooooooooooooo
+    % gcm_obj = datacursormode(fig);
+    % set(gcm_obj,'UpdateFcn',@data_cursor_updatefcn)
+    % % Callback function to display station names
+    % function output_txt = data_cursor_updatefcn(~, event_obj)
+    %     % Display the position of the data cursor
+    %     pos = event_obj.Position;
+    %     idx = event_obj.DataIndex;
+    %         output_txt = {['Station: ' stations.ID{idx}]};
+    % end
 
     % Select soundings from table
     function select_soundings(src,event)
@@ -444,7 +591,6 @@ function gui()
         end
         
     end
-
 
 end
 
