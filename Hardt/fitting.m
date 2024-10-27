@@ -38,7 +38,7 @@ tan(tan < 0) = tan(tan < 0) + 360;
 theta = tan - ori;
 
 % Calculate the potential temperature at each point in the grid
-ptemp = cos(theta/180 *pi).^2 .*ptemp_uw(r./radius .*cos(theta./180 *pi)) + sin(theta./180 *pi).^2 .*ptemp_cw(r./radius .*sin(theta./180 *pi));
+ptemp = cos(theta/180 *pi).^2 .*ptemp_uw(r./radius) + sin(theta./180 *pi).^2 .*ptemp_cw(r./radius);
 
 % Calculate the weights of each profile based on the angle of the glider (for plotting only)
 w_uw = cos(theta/180 *pi).^2;
@@ -80,7 +80,8 @@ zlabel('ptemp')
 title('Potential temperature in the updraft')
 
 % Create a updraft object with the same properties as the updraft
-updraft = Updraft(47.9724,11.796789,1);
+updraft = Updraft(47.9724,11.796789);
+updraft.gain = 1;
 updraft.wind_dir = 0;
 
 % Generate vector of sample latitudes and longitudes
@@ -92,9 +93,11 @@ lon = linspace(11.756576,11.837002,120);
 
 % Calculate the potential temperature difference at the same positions as the grid
 ptemp_diff = zeros(size(lat));
+humidity_diff = zeros(size(lat));
 for i = 1:size(lat,1)
     for j = 1:size(lat,2)
         ptemp_diff(i,j) = updraft.ptemp_diff(lat(i,j),lon(i,j));
+        humidity_diff(i,j) = updraft.humidity_diff(lat(i,j),lon(i,j));
     end
 end
 
@@ -105,6 +108,14 @@ xlabel('x')
 ylabel('y')
 zlabel('ptemp_diff')
 title('Potential temperature difference with perturbation')
+
+% Plot the humidity difference in the grid
+figure
+surf(lat,lon,humidity_diff, 'LineStyle','none')
+xlabel('x')
+ylabel('y')
+zlabel('hum_diff')
+title('Specific humidity difference with perturbation')
 
 %
 % % Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
