@@ -9,11 +9,6 @@ close all
 % Load data
 sensorData = importSensorData('pedro_csv.csv');
 load("sounding_buses.mat","sounding_buses");
-load('29-Jul-2024_Schlautmann Nils.mat')
-numLevels = sounding_buses.numLevels;
-
-
-
 
 % Get data from the descent
 dataDescent = sensorData(46151:46151+19401,:);
@@ -89,7 +84,7 @@ ylabel('Humidity (%)')
 title('Humidity in ascent')
 legend('raw data','calculated from profile')
 subplot(2,1,2)
-plot(dataDescent.time,alt_descent)
+plot(dataAscent.time,alt_ascent)
 xlabel('Time')
 ylabel('Altitude (m)')
 title('Altitude from ascent')
@@ -112,13 +107,6 @@ Pwithout = zeros(n,1);
 RHwith = zeros(n,1);
 RHwithout = zeros(n,1);
 
-% Plot measured humidity at the ascent and descent
-figure
-plot(humidity_ascent)
-hold on
-plot(humidity_descent)
-
-
 % Get temp/press/hum predicted by model without and with thermals
 for i = 1:n
 
@@ -137,10 +125,10 @@ end
 
 % plot humidity from the ascent, and RH with and without updraft
 figure
-plot(humidity_ascent)
+plot(dataAscent.time,humidity_ascent)
 hold on
-plot(RHwith)
-plot(RHwithout)
+plot(dataAscent.time,RHwith)
+plot(dataAscent.time,RHwithout)
 legend('Measured','With updraft','Without updraft')
 xlabel('Time')
 ylabel('Humidity (%)')
@@ -149,5 +137,5 @@ title('Humidity from ascent and RH with and without updraft')
 
 % Compute correlation coefficients between measured humidity and modelled
 % humidity with and without updraft
-corr_with = corr(humidity_ascent,RHwith)
-corr_without = corr(humidity_ascent,RHwithout)
+corr_with = corrcoef(humidity_ascent,RHwith);
+corr_without = corrcoef(humidity_ascent,RHwithout);
