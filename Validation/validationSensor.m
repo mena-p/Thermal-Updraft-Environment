@@ -2,6 +2,7 @@ close all
 % Load data
 sensorData = importSensorData('pedro_csv.csv');
 load("sounding_buses.mat","sounding_buses");
+load('29-Jul-2024_Schlautmann Nils.mat')
 numLevels = sounding_buses.numLevels;
 
 % convert times to duration since start
@@ -22,7 +23,7 @@ end
 % (use n=20001 for tuning, full sensor data for comparing pressure
 n = length(sensorData.time); %20001; % tune on first 400 seconds, max 15km from aerodrome
 
-%% Humidity sensor model
+%% Humidity sensor model (using sounding only)
 
 modeled_humidity = zeros(1,n);    
 hum_err = zeros(1,n);
@@ -59,7 +60,7 @@ hum_comparison_vec = [modeled_humidity' sensorData.humidity(1:n)];
 
 correlation_hum = corrcoef(hum_comparison_vec);
 
-%% Temperature sensor model
+%% Pressure sensor model (using sounding only)
 p1 = 5.9083;
 modeled_press = zeros(1,n);
 for i = 1:n
@@ -91,7 +92,7 @@ press_comparison_vec = [modeled_press' sensorData.pressure(1:n)];
 
 correlation_press = corrcoef(press_comparison_vec);
 
-%% Pressure sensor model
+%% Temperature sensor model (using sounding only)
     T_aircraft = zeros(1,n);
     modeled_temp = zeros(1,n);
     err = zeros(1,n);
@@ -109,7 +110,6 @@ correlation_press = corrcoef(press_comparison_vec);
     temp_comparison_vec = [modeled_temp(2:n)' sensorData.temperature(2:n)+273.15];
 
     correlation_temp = corrcoef(temp_comparison_vec);
-
 %% Plots
 times_igc = flight.trajectory.press_alt.durations - seconds(898);
 figure
@@ -117,4 +117,5 @@ plot(times,press.Var1)
 hold on
 plot(times_igc,igc_press)
 plot(times,modeled_press)
+title('Pressure')
 legend('sensor','igc','modeled')
