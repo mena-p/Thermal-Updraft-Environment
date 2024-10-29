@@ -353,7 +353,7 @@ function gui()
         % Initialize updrafts
         updraft_locations = evalin("base", 'updraft_locations');
         for i = 1:size(updraft_locations,1)
-            updrafts(i) = Updraft(updraft_locations(i,1),updraft_locations(i,2));
+            updrafts{i} = Updraft(updraft_locations(i,1),updraft_locations(i,2));
         end
 
         % Assign updrafts to base workspace
