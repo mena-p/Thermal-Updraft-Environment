@@ -11,7 +11,6 @@
 
 # Saved variables
 *.mat
-!updraft_bus.mat
 !sounding_bus.mat
 !coeff_cw.mat
 !coeff_uw.mat
