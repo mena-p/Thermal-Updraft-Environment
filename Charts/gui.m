@@ -318,12 +318,11 @@ function gui()
             selected_soundings.lon(i) = lon;
         end
 
-        % Extract sounding data and interpolate missing values
+        % Extract sounding data from selected soundings
         selected_soundings_structs = table2struct(selected_soundings);
         for i = 1:size(selected_soundings_structs,1)
-        	tmp = extract_sounding_data(selected_soundings_structs(i));
-            %tmp = remove_values_above(tmp, 5000);
-            reduced_soundings(i) = interpolate_missing(tmp);
+            % Extract only the necessary data from the sounding
+        	reduced_soundings(i) = extract_sounding_data(selected_soundings_structs(i));
         end
 
         % Get lowest number of levels among all soundings

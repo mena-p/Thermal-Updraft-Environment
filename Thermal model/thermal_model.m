@@ -63,17 +63,28 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
     alt_top = alt + 0.01;
     alt_bottom = alt - 0.01;
 
-    % Find indices with geopotential height equal to aircraft height
-    % in all soundings contained in sounding_buses. The comparison is made in this manner to 
-    % account for floating-point precision errors.
-    logical_mask = false(numLevels,num_soundings);
-    used_soundings = false(num_soundings,1);
-    for i = 1:num_soundings
-        % Initialize logical mask (1 if aircraft height is in sounding data, 0 otherwise)
-        logical_mask(:,i) = (sounding_buses(i).REPGPH <= alt_top & sounding_buses(i).REPGPH >= alt_bottom);
-        % Initialize used soundings (1 if sounding contains aircraft height, 0 otherwise)
-        used_soundings(i) = any(logical_mask(:,i));
-    end
+    % Concatenate the sounding data
+    REPGPH = [sounding_buses(:).REPGPH];
+    PRESS = [sounding_buses(:).PRESS];
+    TEMP = [sounding_buses(:).TEMP];
+    VAPPRESS = [sounding_buses(:).VAPPRESS];
+
+    % Create logical mask for the heights below and above the aircraft height
+    logical_mask_below = REPGPH <= alt_top;
+    logical_mask_above = REPGPH >= alt_bottom;
+
+    % Find indexes of the heights directly below and directly above the aircraft height
+    logical_mask_below = REPGPH == max(REPGPH.*logical_mask_below,[],1);
+    REPGPH_temp = REPGPH;
+    REPGPH_temp(~logical_mask_above) = NaN;
+    logical_mask_above = REPGPH == min(REPGPH_temp.*logical_mask_above,[],1);
+
+    % Check which soundings contain the aircraft height and will be used
+    used_soundings = any(logical_mask_above) & any(logical_mask_below);
+
+    % Use only soundings in used_soundings
+    logical_mask_below = logical_mask_below & used_soundings;
+    logical_mask_above = logical_mask_above & used_soundings;
 
     % Check if no soundings contains the aircraft height
     if ~any(used_soundings)
@@ -83,6 +94,13 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
         return;
     end
 
+    % Interpolate the values at index_below and index_above to the aircraft height
+    % using linear interpolation
+    p = PRESS(logical_mask_below) + (PRESS(logical_mask_above) - PRESS(logical_mask_below))./(REPGPH(logical_mask_above) - REPGPH(logical_mask_below)) .* (alt - REPGPH(logical_mask_below));
+    T = TEMP(logical_mask_below) + (TEMP(logical_mask_above) - TEMP(logical_mask_below))./(REPGPH(logical_mask_above) - REPGPH(logical_mask_below)) .* (alt - REPGPH(logical_mask_below));
+    vap_press = VAPPRESS(logical_mask_below) + (VAPPRESS(logical_mask_above) - VAPPRESS(logical_mask_below))./(REPGPH(logical_mask_above) - REPGPH(logical_mask_below)) .* (alt - REPGPH(logical_mask_below));   
+    
+    
     % Compute the distance averaged pressure, temperature and specific humidity at that height
 
     % Compute the distance to each station from the aircraft
@@ -102,15 +120,11 @@ function [T,q,p,RH] = thermal_model(lat,lon,alt,updrafts,sounding_buses)
         weights = ones(num_soundings);
     end
 
-    % Concatenate sounding data
-    PRESS = [sounding_buses(used_soundings).PRESS];
-    TEMP = [sounding_buses(used_soundings).TEMP];
-    VAPPRESS = [sounding_buses(used_soundings).VAPPRESS];
 
     % Compute the weighted average
-    p = weights' * PRESS(logical_mask(:,used_soundings));
-    T = weights' * TEMP(logical_mask(:,used_soundings));
-    vap_press = weights' * VAPPRESS(logical_mask(:,used_soundings));
+    p = weights' * p;
+    T = weights' * T;
+    vap_press = weights' * vap_press;
 
     % Compute the mixing ratio and specific humidity
     r = 0.622 * vap_press/(p - vap_press); % mixing ratio (kg water/kg dry air)
