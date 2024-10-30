@@ -261,7 +261,7 @@ function gui()
             found_soundings = [];
             for i = 1:size(nearest,1)
                 station = nearest(i,:);
-                filename = strcat('IGRA-Parser/soundings/', station.ID, '-drvd.txt');
+                filename = strcat('IGRA-Parser/Stations/', station.ID, '-drvd.txt');
                 found = parse_derived_by_date(filename, flight.date);
                 found_soundings = [found_soundings, found];
             end
