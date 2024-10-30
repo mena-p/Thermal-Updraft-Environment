@@ -9,7 +9,8 @@ function soundings = parse_derived_by_date(filename, date)
     % flags in the measument data or headers are filled with NaN
     % and missing numerical values in the data are filled with NaN.
     % Find more about the dataset on https://www.ncei.noaa.gov/products/weather-balloon/integrated-global-radiosonde-archive
-    
+    tic()
+    disp('Searching for soundings.')
     % Open the provided file
     file = fopen(filename, 'rt');
     if file == -1
@@ -27,26 +28,28 @@ function soundings = parse_derived_by_date(filename, date)
     headerLine = fgetl(file);
     lineCounter = 1;
     
-    % Search for headers (check if line starts with '#')
-    disp('Searching for sounding...')
-    while ischar(headerLine)  
-        if headerLine(1) == '#' % header found
-            
-            % date of measurement
-            date = datetime(headerLine(14:23),'InputFormat',...
-                'yyyy MM dd','TimeZone','UTC');
-            
-            % Check if the date matches the requested date
-            if date > requested_date
-                disp("Found all soundings for this station.")
-                return
-            elseif date ~= requested_date
-                % Skip this sounding
+    while(headerLine(1) ~= '#') % find the first header
+        headerLine = fgetl(file);
+        lineCounter = lineCounter + 1;
+    end
+
+    while(ischar(headerLine)) % read until the end of the file
+        % Parse the header line
+        
+        % date of measurement
+        date = datetime(headerLine(14:23),'InputFormat',...
+            'yyyy MM dd','TimeZone','UTC');
+
+        % Get number of measurement lines
+        numLines = str2double(headerLine(32:36));
+
+        % Skip the measurement lines if the date is not the requested date
+        if date < requested_date
+            for i = 1:numLines+1
                 headerLine = fgetl(file);
                 lineCounter = lineCounter + 1;
-                continue
             end
-            
+        elseif date == requested_date
             disp('Sounding found! Parsing...')
 
             % Create a new sounding object
@@ -92,7 +95,7 @@ function soundings = parse_derived_by_date(filename, date)
     
             % number of measurement levels (= number of data records that
             % follow)
-            sounding.numLevels = str2double(headerLine(32:36));
+            sounding.numLevels = numLines;
     
            
     
@@ -256,13 +259,15 @@ function soundings = parse_derived_by_date(filename, date)
             soundings = [soundings sounding];
 
             disp('Finished parsing.')
+            for i = 1:numLines+1
+                headerLine = fgetl(file);
+                lineCounter = lineCounter + 1;
+            end
+        else
+            disp("There are no more soundings at this date for this station.")
+            fclose(file);
+            toc()
+            return
         end
-        headerLine = fgetl(file);
-        lineCounter = lineCounter + 1;
     end
-    % If the sounding is not found, return an empty array
-    if isempty(soundings)
-        warning('Sounding not found, returning empty array.')
-    end
-    fclose(file);
-    end
+end
