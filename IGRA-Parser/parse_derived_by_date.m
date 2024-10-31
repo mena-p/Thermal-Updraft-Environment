@@ -9,7 +9,7 @@ function soundings = parse_derived_by_date(stationID, date)
     % flags in the measument data or headers are filled with NaN
     % and missing numerical values in the data are filled with NaN.
     % Find more about the dataset on https://www.ncei.noaa.gov/products/weather-balloon/integrated-global-radiosonde-archive
-    tic()
+    
     disp('Searching for soundings.')
 
     % Set requested date's time zone
@@ -281,7 +281,6 @@ function soundings = parse_derived_by_date(stationID, date)
         else
             disp("There are no more soundings at this date for this station.")
             fclose(file);
-            toc()
             return
         end
     end
