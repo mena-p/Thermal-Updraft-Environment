@@ -101,8 +101,6 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     % Round sample point heights to nearest integer
     alts = [alt_nose, alt_left, alt_right];
     rounded_alts = round([alt_nose, alt_left, alt_right]);
-    alts_top = rounded_alts + 0.01;
-    alts_bottom = rounded_alts - 0.01;
 
     % Concatenate the sounding data
     REPGPH = [sounding_buses(:).REPGPH];
@@ -113,9 +111,9 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     logical_mask_below = false(numLevels,num_soundings,3);
     logical_mask_above = false(numLevels,num_soundings,3);
     % Create logical mask for the heights below and above the aircraft height
-    for k = 1: 3
-        logical_mask_below(:,:,k) = REPGPH <= alts_top(k);
-        logical_mask_above(:,:,k) = REPGPH >= alts_bottom(k);
+    for k = 1:3
+        logical_mask_below(:,:,k) = REPGPH < rounded_alts(k);
+        logical_mask_above(:,:,k) = REPGPH >= rounded_alts(k);
 
         % Find indexes of the heights directly below and directly above the aircraft height
         logical_mask_below(:,:,k) = REPGPH == max(REPGPH.*logical_mask_below(:,:,k),[],1);
