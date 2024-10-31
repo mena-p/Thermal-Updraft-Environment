@@ -52,7 +52,9 @@ function active_stations = find_active_stations(flight, stations, max_dist)
 
         % Find out which stations are not up to date and update their files
         old_stations = stations(stations.lastUpdate < date, :);
-        download_station_files(old_stations);
+        if(~isempty(old_stations))
+            download_station_files(old_stations);
+        end
 
         % Find out which stations are active on the day of the flight with the cache
         active_stations = [];
@@ -64,6 +66,10 @@ function active_stations = find_active_stations(flight, stations, max_dist)
                 if any(cache.date == date)
                     active_stations = [active_stations; station];
                 end
+            else
+                purge_cache();
+                gui();
+                error('Cache file not found. This can happen if the cache file was manually deleted. The cache has been purged automatically, which should solve the problem. If it does not, please manually set the lastUpdate column of the stations.mat table to 01.01.0000 and save it to the station.mat file. Restart the GUI and try again.');
             end
         end
         % If no stations are active, increase the distance

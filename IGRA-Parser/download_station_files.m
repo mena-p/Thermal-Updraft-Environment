@@ -2,7 +2,9 @@ function download_station_files(stationList)
 % Downloads and processes station files from IGRA archive
 %   This function takes a list of station structures, downloads the corresponding
 %   data files from the IGRA archive, unzips them, and updates the cache for each station.
-
+    if(isempty(stationList))
+        return
+    end
     for i = 1:size(stationList,1)
         station = stationList(i,:);
         url = strcat('https://www.ncei.noaa.gov/data/integrated-global-radiosonde-archive/access/derived-por/', station.ID, '-drvd.txt.zip');
