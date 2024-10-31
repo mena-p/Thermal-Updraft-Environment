@@ -43,5 +43,5 @@ function create_station_cache(stationID)
     end
     fclose(fileid);
     save(filename, 'cache');
-    fprintf('Finished caching %s\n\n',stationID);
+    fprintf('Finished caching %s\n',stationID);
 end

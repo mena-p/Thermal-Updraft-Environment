@@ -55,5 +55,5 @@ function update_station_cache(stationID)
     end
     save(filename, 'cache');
     fclose(fileid);
-    fprintf('Finished caching %s\n\n',stationID);
+    fprintf('Finished caching %s\n',stationID);
 end
