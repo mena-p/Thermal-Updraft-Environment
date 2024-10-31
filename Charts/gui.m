@@ -45,34 +45,34 @@ function gui()
         "datetime"],'VariableNames',["Station ID","Sounding time"]);
     sounding_tbl.SelectionChangedFcn = @(src,event) select_soundings(src,event);
 
-   % Buttons
-   b1 = uibutton(buttongrid,"Text","Load flight");
-   b1.Layout.Row = 1;
-   b1.Layout.Column = 1;
-   b9 = uibutton(buttongrid,"Text","Create Flight");
-   b9.Layout.Row = 1;
-   b9.Layout.Column = 2;
-   b2 = uibutton(buttongrid,"Text","Detect thermals");
-   b2.Layout.Row = 2;
-   b2.Layout.Column = 1;
-   b3 = uibutton(buttongrid,"Text","Add thermal");
-   b3.Layout.Row = 2;
-   b3.Layout.Column = 2;
-   b4 = uibutton(buttongrid,"Text","Remove thermal");
-   b4.Layout.Row = 3;
-   b4.Layout.Column = 1;
-   b5 = uibutton(buttongrid,"Text","Remove all");
-   b5.Layout.Row = 3;
-   b5.Layout.Column = 2;
-   b6 = uibutton(buttongrid,"Text","Download data");
-   b6.Layout.Row = 4;
-   b6.Layout.Column = 1;
-   b7 = uibutton(buttongrid,"Text","Find soundings");
-   b7.Layout.Row = 4;
-   b7.Layout.Column = 2;
-   b8 = uibutton(buttongrid,"Text","Send to model");
-   b8.Layout.Row = 5;
-   b8.Layout.Column = 1;
+    % Buttons
+    b1 = uibutton(buttongrid,"Text","Load flight");
+    b1.Layout.Row = 1;
+    b1.Layout.Column = 1;
+    b9 = uibutton(buttongrid,"Text","Create Flight");
+    b9.Layout.Row = 1;
+    b9.Layout.Column = 2;
+    b2 = uibutton(buttongrid,"Text","Detect thermals");
+    b2.Layout.Row = 2;
+    b2.Layout.Column = 1;
+    b3 = uibutton(buttongrid,"Text","Add thermal");
+    b3.Layout.Row = 2;
+    b3.Layout.Column = 2;
+    b4 = uibutton(buttongrid,"Text","Remove thermal");
+    b4.Layout.Row = 3;
+    b4.Layout.Column = 1;
+    b5 = uibutton(buttongrid,"Text","Remove all");
+    b5.Layout.Row = 3;
+    b5.Layout.Column = 2;
+    b6 = uibutton(buttongrid,"Text","Download data");
+    b6.Layout.Row = 4;
+    b6.Layout.Column = 1;
+    b7 = uibutton(buttongrid,"Text","Find soundings");
+    b7.Layout.Row = 4;
+    b7.Layout.Column = 2;
+    b8 = uibutton(buttongrid,"Text","Send to model");
+    b8.Layout.Row = 5;
+    b8.Layout.Column = 1;
     
     % Configure buttons
     b1.ButtonPushedFcn = @(src,event) load_flight();
@@ -83,6 +83,7 @@ function gui()
     b6.ButtonPushedFcn = @(src,event) download_data();
     b7.ButtonPushedFcn = @(src,event) find_soundings();
     b8.ButtonPushedFcn = @(src,event) send_to_model();
+    b9.ButtonPushedFcn = @(src,event) create_flight();
 
     % Tab 2
     tab2 = uitab("Parent",tabs,"Title","Simulation");
@@ -94,12 +95,12 @@ function gui()
     
     % Plots in tab 2
     % Instruments plot
-    instrimentSubgrid = uigridlayout(simulationSubgridRight,[1 3]);
-    instrimentSubgrid.Layout.Row = 2;
-    instrimentSubgrid.Layout.Column = 1;
-    airspeed = uiaeroairspeed(instrimentSubgrid,"Tag","airspeed","Limits",[0 150]);
-    altimeter = uiaeroaltimeter(instrimentSubgrid,"Tag","altimeter");
-    climb = uiaeroclimb(instrimentSubgrid,"Tag","climb");
+    instrumentSubgrid = uigridlayout(simulationSubgridRight,[1 3]);
+    instrumentSubgrid.Layout.Row = 2;
+    instrumentSubgrid.Layout.Column = 1;
+    airspeed = uiaeroairspeed(instrumentSubgrid,"Tag","airspeed","Limits",[0 150]);
+    altimeter = uiaeroaltimeter(instrumentSubgrid,"Tag","altimeter");
+    climb = uiaeroclimb(instrumentSubgrid,"Tag","climb");
 
     % Aircaft plot
     ax3 = geoaxes(simulationSubgridLeft);
@@ -117,6 +118,9 @@ function gui()
     ax2.Layout.Row = 1;
     ax2.Layout.Column = 1;
     arrow_plot = compassplot(0,1,'Parent',ax2,"Tag","arrowPlot");
+    hold(ax2,"on")
+    nearest_updraft_plot = compassplot(0,1,'Parent',ax2,"Tag","nearestPlot");
+    hold(ax2,"off")
     title(ax2,"Body-axis VPT gradient direction")   
     set(ax2,"ThetaZeroLocation",'top',"ThetaDir",'clockwise')
 
@@ -148,6 +152,157 @@ function gui()
         % Plot the flight trajectory
         plot_flight();
         show_stations();
+    end
+
+    % Create flight
+    function create_flight()
+
+        % Open a new window where the user can create a flight
+        fig2 = uifigure("Position",[100 100 800 450],"Name",'Create Flight','Tag','createFlightGUI');
+        
+        % Make it modal
+        fig2.WindowStyle = 'modal';
+        
+        % Create a grid layout
+        createFlightGrid = uigridlayout(fig2,[1 2],"ColumnWidth",{'1x','2x'});
+        createFlightSubgrid = uigridlayout(createFlightGrid,[2 1],"RowHeight",{'8x','2x'});
+        createFlightSubgrid.Layout.Column = 1;
+        createFlightSubsubgrid = uigridlayout(createFlightSubgrid,[2 2]);
+        createFlightSubsubgrid.Layout.Row = 2;
+        
+        % Create a table to store waypoints and choose velocity and altitude
+        createFlightTable = uitable(createFlightSubgrid);
+        createFlightTable.Layout.Row = 1;
+        createFlightTable.Layout.Column = 1;
+        createFlightTable.Data = table('Size',[1 3],'VariableTypes',["uint32","double","double"],...
+            'VariableNames',["Waypoint","Altitude","Velocity"]);
+        
+        % Make table editable
+        createFlightTable.ColumnEditable = [false true true];
+        
+        % Clear table values
+        createFlightTable.Data = [];
+        
+        % Create a map
+        axFlight = geoaxes(createFlightGrid);
+        axFlight.Layout.Row = 1;
+        axFlight.Layout.Column = 2;
+        
+        % Create a plot for the flight
+        flight_plot = geoplot(0,0,'-b','Parent',axFlight,"Tag","createFlightPlot");
+        set(flight_plot,'LatitudeData',[],'LongitudeData',[]);
+        
+        % Create buttons to start selecting waypoints, reset the flight and finish the flight
+        bStart = uibutton(createFlightSubsubgrid,"Text","Select waypoints");
+        bStart.Layout.Row = 1;
+        bStart.Layout.Column = 1;
+        bReset = uibutton(createFlightSubsubgrid,"Text","Reset flight");
+        bReset.Layout.Row = 1;
+        bReset.Layout.Column = 2;
+        bCancel = uibutton(createFlightSubsubgrid,"Text","Cancel");
+        bCancel.Layout.Row = 2;
+        bCancel.Layout.Column = 1;
+        bFinish = uibutton(createFlightSubsubgrid,"Text","Accept");
+        bFinish.Layout.Row = 2;
+        bFinish.Layout.Column = 2;
+
+        % Create callback functions for the buttons
+        bStart.ButtonPushedFcn = @(src,event) start_flight();
+        bReset.ButtonPushedFcn = @(src,event) reset_flight();
+        bCancel.ButtonPushedFcn = @(src,event) cancel_flight();
+        bFinish.ButtonPushedFcn = @(src,event) accept_flight();
+        
+        % Start flight
+        function start_flight()
+            
+            % Dumb workaround since ginput doesn't work with uifigure
+            fhv = fig2.HandleVisibility;        % Current status
+            fig2.HandleVisibility = 'callback'; % Temp change (or, 'on') 
+            set(0, 'CurrentFigure', fig)       % Make fig current
+            
+            % Start selecting waypoints
+            [lat, lon] = ginput();
+
+            fig2.HandleVisibility = fhv;        % return original state
+
+            % Check if there are at least two waypoints
+            if size(lat,1) < 2
+                disp("Please select at least two waypoints.")
+                return
+            end
+
+            % Add the waypoints to the plot
+            set(flight_plot,'LatitudeData',lat,'LongitudeData',lon);
+            
+            % Show waypoint number on the map
+            text(lat,lon,string(1:size(lat,1)),'Parent',axFlight);
+
+            % Add the waypoints to the table with default velocity and height values
+            data = table((1:size(lat,1))',1000*ones(size(lat,1),1),50*ones(size(lat,1),1),...
+                'VariableNames',["Waypoint","Altitude","Velocity"]);
+            createFlightTable.Data = data;
+        end
+
+        % Reset flight
+        function reset_flight()
+            % Clear the plot and the table
+            set(flight_plot,'LatitudeData',[],'LongitudeData',[]);
+            createFlightTable.Data = [];
+            % Clear the waypoint text
+            delete(findobj(axFlight,'Type','text'));
+        end
+
+        % Cancel flight
+        function cancel_flight()
+            reset_flight(); % Reset the flight
+            close(fig2) % Close the window
+        end
+
+        % Accept flight
+        function accept_flight()
+            % Create a time series from waypoints and velocities
+            lat = flight_plot.LatitudeData;
+            lon = flight_plot.LongitudeData;
+
+            % Get velocity and altitude from the table for each waypoint
+            data = createFlightTable.Data;
+            alt = data.Altitude;
+            vel = data.Velocity(1:end-1);
+            wgs84 = wgs84Ellipsoid("m");
+            time = zeros(size(lat,2),1);
+
+            % Get the distance between waypoints
+            for i = 1:size(lat,2)-1
+                dist(i) = distance(lat(i+1),lon(i+1),lat(i),lon(i),wgs84);
+            end
+
+            % Compute cumulative elapsed time between waypoints
+            time = dist'./vel;
+            time = [0; time];
+            time = cumsum(time);
+
+            % Create a new flight object
+            flight.date = datetime(2024,1,1);   % sometimes IGRA takes a few days to update 
+                                                        % the available soundings. This ensures that
+                                                        % there will be soundings available for the flight.
+            flight.pilot = "User-defined";
+            flight.aircraft = "User-defined";
+            flight.registration = "D-XXXX";
+            durations = seconds(time);
+            flight.trajectory.lat = timetable(durations,lat','VariableNames',{'lat'});
+            flight.trajectory.lon = timetable(durations,lon','VariableNames',{'lon'});
+            flight.trajectory.alt = timetable(durations,alt,'VariableNames',{'alt'});
+
+            % Save the flight to the workspace
+            assignin("base",'flight',flight);
+
+            % Close the window
+            close(fig2)
+
+            % Plot the flight trajectory and show stations in the main window
+            plot_flight();
+            show_stations();
+        end
     end
 
     % Detect thermals
