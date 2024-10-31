@@ -14,7 +14,7 @@
 !sounding_bus.mat
 !coeff_cw.mat
 !coeff_uw.mat
-!IGRA-Parser/stations.mat
+IGRA-Parser/stations.mat
 
 # Windows default autosave extension
 *.asv
