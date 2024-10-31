@@ -4,7 +4,7 @@ function gui()
     close(all_fig)
     
     % Load data and declare variables (function scope)
-    load('stations.mat', 'stations');
+    load('IGRA-Parser/stations.mat', 'stations');
     nearest = [];
     soundings = [];
     selected_soundings = [];
