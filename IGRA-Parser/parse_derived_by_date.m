@@ -1,4 +1,4 @@
-function soundings = parse_derived_by_date(filename, date)
+function soundings = parse_derived_by_date(stationID, date)
     % Usage: exampleOutput = parse_sounding('GMM00010868-drvd.txt','31.01.2019');
     % This function searches an IGRA derived parameter file containing
     % multiple soundings for a sounding on the given date and returns 
@@ -11,7 +11,26 @@ function soundings = parse_derived_by_date(filename, date)
     % Find more about the dataset on https://www.ncei.noaa.gov/products/weather-balloon/integrated-global-radiosonde-archive
     tic()
     disp('Searching for soundings.')
-    % Open the provided file
+
+    % Set requested date's time zone
+    requested_date = date;
+    requested_date.TimeZone = 'UTC';
+
+    % Open the cache file
+    cacheFilename = fullfile('IGRA-Parser', 'Cache', strcat(stationID, '-cache.mat'));
+    if ~isfile(cacheFilename)
+        error('There is no cache file for station %s. Create one first', stationID);
+    end
+    load(cacheFilename, 'cache');
+
+    % Find index of the requested date in the cache
+    offset = cache.line(cache.date == requested_date);
+    if isempty(offset)
+        error('There are no soundings for station %s on %s', stationID, date);
+    end
+
+    % Open the station's derived parameter file
+    filename = fullfile('IGRA-Parser', 'Stations', strcat(stationID, '-drvd.txt'));
     file = fopen(filename, 'rt');
     if file == -1
         error('Cannot open file: %s', filename);
@@ -20,14 +39,10 @@ function soundings = parse_derived_by_date(filename, date)
     % Initialize output array
     soundings = [];
 
-    % Set requested date's time zone
-    requested_date = date;
-    requested_date.TimeZone = 'UTC';
-    
-    % Read first line
+    % Move cursor to the header line of the requested date
+    headerLine = textscan(file, '%s', 1, 'delimiter', '\n', 'headerlines', offset-2);
     headerLine = fgetl(file);
-    lineCounter = 1;
-    
+    lineCounter = offset;
     while(headerLine(1) ~= '#') % find the first header
         headerLine = fgetl(file);
         lineCounter = lineCounter + 1;
