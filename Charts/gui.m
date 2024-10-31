@@ -4,7 +4,7 @@ function gui()
     close(all_fig)
     
     % Load data and declare variables (function scope)
-    load('stations.mat', 'stations');
+    load('IGRA-Parser/stations.mat', 'stations');
     nearest = [];
     soundings = [];
     selected_soundings = [];
@@ -243,7 +243,7 @@ function gui()
 
         flight = evalin("base",'flight');
 
-        active = find_active_stations(flight,stations,200000);
+        active = find_active_stations(flight,stations,100000);
         nearest = find_nearest_stations(flight,active);
 
         set(active_station_plot,'XData',active.lat,"YData",active.lon);
@@ -261,8 +261,7 @@ function gui()
             found_soundings = [];
             for i = 1:size(nearest,1)
                 station = nearest(i,:);
-                filename = strcat('IGRA-Parser/soundings/', station.ID, '-drvd.txt');
-                found = parse_derived_by_date(filename, flight.date);
+                found = parse_derived_by_date(station.ID, flight.date);
                 found_soundings = [found_soundings, found];
             end
             %found_soundings = filter_soundings(found_soundings); 
