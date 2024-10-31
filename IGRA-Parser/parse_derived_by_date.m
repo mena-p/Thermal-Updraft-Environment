@@ -10,7 +10,7 @@ function soundings = parse_derived_by_date(stationID, date)
     % and missing numerical values in the data are filled with NaN.
     % Find more about the dataset on https://www.ncei.noaa.gov/products/weather-balloon/integrated-global-radiosonde-archive
     
-    disp('Searching for soundings.')
+    fprintf('Searching %s for soundings.\n',stationID)
 
     % Set requested date's time zone
     requested_date = date;
@@ -279,7 +279,7 @@ function soundings = parse_derived_by_date(stationID, date)
                 lineCounter = lineCounter + 1;
             end
         else
-            disp("There are no more soundings at this date for this station.")
+            fprintf('There are no more soundings on this day for %s.\n\n',stationID)
             fclose(file);
             return
         end
