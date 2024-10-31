@@ -243,7 +243,7 @@ function gui()
 
         flight = evalin("base",'flight');
 
-        active = find_active_stations(flight,stations,200000);
+        active = find_active_stations(flight,stations,100000);
         nearest = find_nearest_stations(flight,active);
 
         set(active_station_plot,'XData',active.lat,"YData",active.lon);
