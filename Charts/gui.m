@@ -108,10 +108,12 @@ function gui()
     ax3.Layout.Column = 1;
     position = geoplot(0,0,'-b','Parent',ax3,"Tag","position");
     set(position,'LatitudeData',[],'LongitudeData',[]);
-
+    hold(ax3,"on")
+    
     % Thermals plot
     updraft_plot_sim = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
     set(updraft_plot_sim,'XData',[],"YData",[]);
+    hold(ax3,"off")
 
     % Arrow plot
     ax2 = polaraxes("Parent",simulationSubgridRight);
