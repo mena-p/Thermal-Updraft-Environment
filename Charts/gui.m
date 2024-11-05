@@ -22,7 +22,7 @@ function gui()
     buttongrid.Layout.Row = 2;
     buttongrid.Layout.Column = 1;
     
-    % Plots in tab 1
+    %% Plots in tab 1
     % Plots Setup Tab
     ax = geoaxes(grid);
     traj_plot = geoplot(0,0,'-b','Parent',ax);
@@ -93,7 +93,7 @@ function gui()
     simulationSubgridLeft.RowHeight = {'9x','1x'};
     simulationSubgridRight.RowHeight = {'3x','1x'};
     
-    % Plots in tab 2
+    %% Plots in tab 2
     % Instruments plot
     instrumentSubgrid = uigridlayout(simulationSubgridRight,[1 3]);
     instrumentSubgrid.Layout.Row = 2;
@@ -102,24 +102,24 @@ function gui()
     altimeter = uiaeroaltimeter(instrumentSubgrid,"Tag","altimeter");
     climb = uiaeroclimb(instrumentSubgrid,"Tag","climb");
 
-    % Aircaft plot
+    % Map plot
     ax3 = geoaxes(simulationSubgridLeft);
     ax3.Layout.Row = 1;
     ax3.Layout.Column = 1;
-    position = geoplot(0,0,'-b','Parent',ax3,"Tag","position");
-    set(position,'LatitudeData',[],'LongitudeData',[]);
     hold(ax3,"on")
-    
+    % Gilder position plot
+    position = geoscatter(ax3,0,0,50,'b',"Marker",'*',"Tag","position");
+    set(position,'LatitudeData',[],'LongitudeData',[]);
     % Thermals plot
-    updraft_plot_sim = geoscatter(0,0,'r',"Marker",'o',"Parent",ax3);
-    set(updraft_plot_sim,'XData',[],"YData",[]);
+    updraft_plot_sim = geoscatter(ax3,0,0,'r',"Marker",'o',"Tag","thermalsPlotSim");
+    set(updraft_plot_sim,'LatitudeData',[],'LongitudeData',[]);
     hold(ax3,"off")
 
     % Arrow plot
     ax2 = polaraxes("Parent",simulationSubgridRight);
     ax2.Layout.Row = 1;
     ax2.Layout.Column = 1;
-    arrow_plot = compassplot(0,1,'Parent',ax2,"Tag","arrowPlot");
+    soarsense_plot = compassplot(0,1,'Parent',ax2,"Tag","soarsensePlot");
     hold(ax2,"on")
     nearest_updraft_plot = compassplot(0,1,'Parent',ax2,"Tag","nearestPlot");
     hold(ax2,"off")
@@ -130,6 +130,8 @@ function gui()
     simControl = uisimcontrols(simulationSubgridLeft);
     simControl.Layout.Row = 2;
     simControl.Layout.Column = 1;
+    runSim = simulation('model');
+    simControl.Simulation = runSim;
     
     
     %% Button callback functions
@@ -550,8 +552,10 @@ function gui()
         updraft_locations = evalin("base",'updraft_locations');
         if ~isempty(updraft_locations)
             set(updraft_plot,'XData',updraft_locations(:,1),"YData",updraft_locations(:,2));
+            set(updraft_plot_sim,'LatitudeData',updraft_locations(:,1),"LongitudeData",updraft_locations(:,2));
         else
             set(updraft_plot,'XData',[],"YData",[]);
+            set(updraft_plot_sim,'LatitudeData',[],"LongitudeData",[]);
         end
     end
 
@@ -570,7 +574,7 @@ function gui()
         set(active_station_plot,'XData',active.lat,"YData",active.lon);
         set(nearest_station_plot,'XData',nearest.lat,"YData",nearest.lon);
     end
-    
+
     % Other UI functions
     % Select soundings from table
     function select_soundings(src,event)
