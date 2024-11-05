@@ -59,7 +59,7 @@ function updateData(y,time,sigNum)
         v = sqrt(y(1,1)^2 + y(1,2)^2 + y(1,3)^2) * 1.944;
         
         % Vertical speed feet/min
-        vert = y(1,3) * 196.9;
+        vert = -1* y(1,3) * 196.9;
         set(airspeed,'AirSpeed',v);
         set(climb,'ClimbRate',vert);
         drawnow;
