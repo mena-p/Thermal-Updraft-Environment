@@ -123,11 +123,11 @@ function gui()
     hold(ax2,"on")
     nearest_updraft_plot = compassplot(0,1,'Parent',ax2,"Tag","nearestPlot");
     hold(ax2,"off")
-    title(ax2,"Body-axis VPT gradient direction")   
+    title(ax2,"Predicted (blue) and actual (red) direction of nearest thermal")   
     set(ax2,"ThetaZeroLocation",'top',"ThetaDir",'clockwise')
 
     % Simulation controls
-    simControl = uisimcontrols(simulationSubgridLeft);
+    simControl = uisimcontrols(simulationSubgridLeft,"ContinueText","Continue","PauseText","Pause","StopText","Stop");
     simControl.Layout.Row = 2;
     simControl.Layout.Column = 1;
     runSim = simulation('model');
