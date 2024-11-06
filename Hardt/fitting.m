@@ -1,92 +1,36 @@
-% This script tests out two ways of extrapolating the linear profile of
+% This script tests out ways of extrapolating the linear profile of
 % potential temperature into 2D space. The first method is to manually average the
 % two profiles based on the angle the gliders makes with the updraft.
 % The second method is to use the griddata function to interpolate 
-% the values of potential temperature at any point in the updraft. 
+% the values of potential temperature at any point in the updraft.Linear,
+% quadratic, cubic, natural... interpolation were tested. Plots
+% are generated for the thesis
 
 close all
+clear
 
-% Method 1: Manual averaging of the two profiles based on the angle of the glider
-% Load coefficients of the linear profile of potential temperature
-load("coeff_uw.mat");
-load("coeff_cw.mat");
+% Plot colors
+c = colormap('sky');
+test = [c(:,3) c(:,2) c(:,1)];
+color1 = [252 223 176];
+color2 = [255 165 0];
+color3 = [242 91 26];
 
-uw = coeff_uw(1,:);
-cw = coeff_cw(1,:);
-
-% Declare functions of potential temperature
-ptemp_uw = @(r) uw(1) + uw(2)*cos(r*uw(6)) + uw(3)*sin(r*uw(6)) + uw(4)*cos(2*r*uw(6)) + uw(5)*sin(2*r*uw(6));
-ptemp_cw = @(r) cw(1) + cw(2)*cos(r*cw(6)) + cw(3)*sin(r*cw(6)) + cw(4)*cos(2*r*cw(6)) + cw(5)*sin(2*r*cw(6));
-
-% Define updraft radius, position, and orientation in degrees
-radius = 600; % meters
-pos = [0, 0]; % [x, y] (x is north, y is east)
-ori = 0; % degrees (0 is north, 90 is east)
-
-
-% Create grid of query points [xq,yq] centered at the updraft
-[xq,yq] = meshgrid(pos(1)-radius*4:5:pos(1)+radius*4,pos(2)-radius*4:5:pos(2)+radius*4);
-
-% Calculate the relative distance of each point in the grid to the updraft
-r = sqrt((xq-pos(1)).^2 + (yq-pos(2)).^2);
-
-% Calculate the angle of each point in the grid to the x-axis
-tan = atan2d(yq-pos(2), xq-pos(1));
-tan(tan < 0) = tan(tan < 0) + 360;
-
-% Calculate the angle of each point in the grid to the updraft
-theta = tan - ori;
-
-% Calculate the potential temperature at each point in the grid
-ptemp = cos(theta/180 *pi).^2 .*ptemp_uw(r./radius) + sin(theta./180 *pi).^2 .*ptemp_cw(r./radius);
-
-% Calculate the weights of each profile based on the angle of the glider (for plotting only)
-w_uw = cos(theta/180 *pi).^2;
-w_cw = sin(theta/180 *pi).^2;
-
-% % Plot the weights in the grid
-% figure
-% surf(xq,yq,w_uw, 'LineStyle','none')
-% xlabel('x')
-% ylabel('y')
-% zlabel('w')
-% title('Weight of the updraft profile')
-
-% % Plot theta in the grid
-% figure
-% surf(xq,yq,theta, 'LineStyle','none')
-% xlabel('x')
-% ylabel('y')
-% zlabel('tan')
-% title('Angle of each point in the grid to the x-axis')
-
-% % Plot ptemp_uw and ptemp_cw
-% figure
-% r = -r/radius:0.01:r/radius;
-% plot(r, ptemp_uw(r), 'r')
-% hold on
-% plot(r, ptemp_cw(r), 'b')
-% hold off
-% xlabel('r')
-% ylabel('ptemp')
-% title('Potential temperature profiles')
-
-% Plot the potential temperature in the grid
-figure
-surf(xq,yq,ptemp, 'LineStyle','none')
-xlabel('x')
-ylabel('y')
-zlabel('ptemp')
-title('Potential temperature in the updraft')
-
+r = [linspace(color1(1),color2(1),128)';linspace(color2(1),color3(1),128)']./255;
+g = [linspace(color1(2),color2(2),128)';linspace(color2(2),color3(2),128)']./255;
+b = [linspace(color1(3),color2(3),128)';linspace(color2(3),color3(3),128)']./255;
+colors = [r g b];
+map = colormap(colors);
+% Method 1: using custom interpolation
 % Create a updraft object with the same properties as the updraft
-updraft = Updraft(47.9724,11.796789);
+updraft = Updraft(47.9724,11.796789,1000);
 updraft.gain = 1;
 updraft.wind_dir = 0;
 
+dx = 0.01;
 % Generate vector of sample latitudes and longitudes
-lat = linspace(47.945243,47.999557,120);
-lon = linspace(11.756576,11.837002,120);
+lat = linspace(updraft.latitude - dx,updraft.latitude + dx,120);
+lon = linspace(updraft.longitude - dx,updraft.longitude + dx,120);
 
 % Create linspace out of the lat and lon vectors
 [lat, lon] = meshgrid(lat, lon);
@@ -94,52 +38,155 @@ lon = linspace(11.756576,11.837002,120);
 % Calculate the potential temperature difference at the same positions as the grid
 ptemp_diff = zeros(size(lat));
 humidity_diff = zeros(size(lat));
+ramp = zeros(size(lat));
 for i = 1:size(lat,1)
     for j = 1:size(lat,2)
         ptemp_diff(i,j) = updraft.ptemp_diff(lat(i,j),lon(i,j));
-        humidity_diff(i,j) = updraft.humidity_diff(lat(i,j),lon(i,j));
+        humidity_diff(i,j) = updraft.humidity_diff(lat(i,j),lon(i,j)); 
+        
+        dist = updraft.elliptical_dist_to(lat(i,j), lon(i,j));
+            if dist > 1 && dist <= 3
+                ramp(i,j) = (1.5 - 0.5 * dist);	
+            elseif dist > 3
+                ramp(i,j) = 0;
+            else
+                ramp(i,j) = 1;
+            end
+
     end
 end
 
 % Plot the potential temperature difference in the grid
 figure
 surf(lat,lon,ptemp_diff, 'LineStyle','none')
-xlabel('x')
-ylabel('y')
-zlabel('ptemp_diff')
-title('Potential temperature difference with perturbation')
+xlabel('lon')
+ylabel('lat')
+zlabel('\Delta\theta [K]')
+title('Potential Temperature Difference')
+colormap(map);
 
 % Plot the humidity difference in the grid
 figure
 surf(lat,lon,humidity_diff, 'LineStyle','none')
+xlabel('lon')
+ylabel('lat')
+zlabel('\Deltaq [g/kg]')
+title('Specific Humidity Difference')
+colormap("sky");
+
+% Plot the ramp in the grid
+figure
+surf(lat,lon,ramp, 'LineStyle','none')
+xlabel('lon')
+ylabel('lat')
+zlabel('Scaling Factor [-]')
+title('Scaling Function')
+colormap("gray")
+
+
+
+% Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
+% Get lat and lon values of the meshgrid separately
+
+load("coeff_cw.mat")
+load("coeff_uw.mat")
+radius = 600;
+[xq,yq] = meshgrid(-radius:5:radius,-radius:5:radius);
+
+ptemp_uw = @ (rel_dist) coeff_uw(1,1) + ...
+        coeff_uw(1,2)*cos(rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,3)*sin(rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,4)*cos(2*rel_dist*coeff_uw(1,18)) ...
+        + coeff_uw(1,5)*sin(2*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,6)*cos(3*rel_dist*coeff_uw(1,18)) ...
+        + coeff_uw(1,7)*sin(3*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,8)*cos(4*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,9)*sin(4*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,10)*cos(5*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,11)*sin(5*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,12)*cos(6*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,13)*sin(6*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,14)*cos(7*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,15)*sin(7*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,16)*cos(8*rel_dist*coeff_uw(1,18))...
+        + coeff_uw(1,17)*sin(8*rel_dist*coeff_uw(1,18));
+
+ptemp_cw = @ (rel_dist) coeff_cw(1,1) + ...
+        coeff_cw(1,2)*cos(rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,3)*sin(rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,4)*cos(2*rel_dist*coeff_cw(1,18)) ...
+        + coeff_cw(1,5)*sin(2*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,6)*cos(3*rel_dist*coeff_cw(1,18)) ...
+        + coeff_cw(1,7)*sin(3*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,8)*cos(4*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,9)*sin(4*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,10)*cos(5*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,11)*sin(5*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,12)*cos(6*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,13)*sin(6*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,14)*cos(7*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,15)*sin(7*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,16)*cos(8*rel_dist*coeff_cw(1,18))...
+        + coeff_cw(1,17)*sin(8*rel_dist*coeff_cw(1,18));
+
+hum_uw = @ (rel_dist) coeff_uw(2,1) + ...
+        coeff_uw(2,2)*cos(rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,3)*sin(rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,4)*cos(2*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,5)*sin(2*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,6)*cos(3*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,7)*sin(3*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,8)*cos(4*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,9)*sin(4*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,10)*cos(5*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,11)*sin(5*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,12)*cos(6*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,13)*sin(6*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,14)*cos(7*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,15)*sin(7*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,16)*cos(8*rel_dist*coeff_uw(2,18))...
+        + coeff_uw(2,17)*sin(8*rel_dist*coeff_uw(2,18));
+
+hum_cw = @ (rel_dist) coeff_cw(2,1) + ...
+        coeff_cw(2,2)*cos(rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,3)*sin(rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,4)*cos(2*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,5)*sin(2*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,6)*cos(3*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,7)*sin(3*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,8)*cos(4*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,9)*sin(4*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,10)*cos(5*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,11)*sin(5*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,12)*cos(6*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,13)*sin(6*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,14)*cos(7*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,15)*sin(7*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,16)*cos(8*rel_dist*coeff_cw(2,18))...
+        + coeff_cw(2,17)*sin(8*rel_dist*coeff_cw(2,18));
+
+lats = xq(1,:)';
+lons = yq(:,1);
+
+% Evaluate the potential temperature at the x and y values
+ptemp_x = ptemp_uw(lats./updraft.radius_uw);
+ptemp_y = ptemp_cw(lons./updraft.radius_cw);
+
+% Build vector for griddata function
+x_len = length(lats);
+lats = [lats; zeros(length(lons), 1)];
+lons = [zeros(x_len, 1); lons];
+ptemp = [ptemp_x; ptemp_y];
+
+% Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
+ptemp2 = griddata(lats,lons,ptemp,xq,yq,"linear");
+
+% Plot the interpolated values and the original values as a line plot
+figure
+surf(xq,yq,ptemp2, 'LineStyle','none')
 xlabel('x')
 ylabel('y')
-zlabel('hum_diff')
-title('Specific humidity difference with perturbation')
-
-%
-% % Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
-% % Get x and y values of the meshgrid separately
-% x = xq(1,:)';
-% y = yq(:,1);
-% 
-% % Evaluate the potential temperature at the x and y values
-% ptemp_x = ptemp_uw(x./radius);
-% ptemp_y = ptemp_cw(y./radius);
-% 
-% % Build vector for griddata function
-% x_len = length(x);
-% x = [x; zeros(length(y), 1)];
-% y = [zeros(x_len, 1); y];
-% ptemp = [ptemp_x; ptemp_y];
-% 
-% % Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
-% ptemp2 = griddata(x,y,ptemp,xq,yq,"linear");
-% 
-% % Plot the interpolated values and the original values as a line plot
-% figure
-% surf(xq,yq,ptemp2, 'LineStyle','none')
-% xlabel('x')
-% ylabel('y')
-% zlabel('ptemp')
-% title('Interpolated values of potential temperature in the updraft')
+zlabel('ptemp')
+title('Linearly Interpolated Potential Temperature')
+zlabel('\Delta\theta [K]')
+colormap(map);
