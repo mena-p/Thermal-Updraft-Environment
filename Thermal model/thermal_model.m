@@ -35,7 +35,6 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     left_wingtip = [0; -glider.wingspan/2; 0];
     righ_wingtip = [0; glider.wingspan/2; 0];
 
-
     % Transform to NED frame   
     nose = Mob * nose;
     left_wingtip = Mob * left_wingtip;
@@ -202,7 +201,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         % We add the updraft's potential temperature and specific humidity excess to the
         % sounding data's values
         
-        %% Get (virtual) potential temperature values at the aircrafts height
+        %% Get (virtual) potential temperature values at the surface
         %Tp = sounding_data.PTEMP(1,1);
         %Tv = sounding_data.VTEMP(1,1);
 
