@@ -518,9 +518,10 @@ function gui()
         disp('Loaded sounding bus specification')
 
         % Initialize updrafts
+        zi = sounding_buses(1).zi;
         updraft_locations = evalin("base", 'updraft_locations');
         for i = 1:size(updraft_locations,1)
-            updrafts{i} = Updraft(updraft_locations(i,1),updraft_locations(i,2));
+            updrafts{i} = Updraft(updraft_locations(i,1),updraft_locations(i,2),zi);
         end
 
         % Assign updrafts to base workspace
