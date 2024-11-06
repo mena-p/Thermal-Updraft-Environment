@@ -104,7 +104,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     % Concatenate the sounding data
     REPGPH = [sounding_buses(:).REPGPH];
     PRESS = [sounding_buses(:).PRESS];
-    TEMP = [sounding_buses(:).TEMP];
+    PTEMP = [sounding_buses(:).PTEMP];
     VAPPRESS = [sounding_buses(:).VAPPRESS];
 
     logical_mask_below = false(numLevels,num_soundings,3);
@@ -140,7 +140,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         % using linear interpolation
         for k = 1:3
             p(:,k) = PRESS(logical_mask_below(:,:,k)) + (PRESS(logical_mask_above(:,:,k)) - PRESS(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));
-            T(:,k) = TEMP(logical_mask_below(:,:,k)) + (TEMP(logical_mask_above(:,:,k)) - TEMP(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));
+            T(:,k) = PTEMP(logical_mask_below(:,:,k)) + (PTEMP(logical_mask_above(:,:,k)) - PTEMP(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));
             vap_press(:,k) = VAPPRESS(logical_mask_below(:,:,k)) + (VAPPRESS(logical_mask_above(:,:,k)) - VAPPRESS(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));   
         end
     % Compute the distance averaged pressure, temperature and specific humidity at that height
@@ -188,6 +188,11 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         T_out(i) = T_out(i) + updrafts{updraft_index}.ptemp_diff(lats(i),lons(i));
         q_out(i) = q_out(i) + updrafts{updraft_index}.humidity_diff(lats(i),lons(i))/1000;
     end
+    
+    % Compute the temperature from the potential temperature
+    T_out = T_out .* (p_out./100000).^0.286;
+    T_out = T_out(1,1:3);
+    
     % Compute relative humidity
     r = q_out./(1 - q_out); % mixing ratio (kg water/kg dry air) after adding updraft's humidity excess
     e = p_out .* r./(0.622 + r) ./100; % vapor pressure (hPa) after adding updraft's humidity excess
