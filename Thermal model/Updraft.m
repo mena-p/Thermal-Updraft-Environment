@@ -36,7 +36,7 @@ classdef Updraft
             % a vertical profile of the updraft size
 
             % This is the mean radius, the crosswind and downwind radii still need to be calculated
-            outer_radius = 600;%0.5 * (0.4 + 0.6*rand(1)) * zi;
+            outer_radius = 0.5 * (0.4 + 0.6*rand(1)) * zi;
         end
 
         function inner_radius = inner_radius(obj,zi)
@@ -198,12 +198,12 @@ classdef Updraft
                 + obj.coeff_cw(1,16)*cos(8*rel_dist*obj.coeff_cw(1,18))...
                 + obj.coeff_cw(1,17)*sin(8*rel_dist*obj.coeff_cw(1,18));
             
+            % Average based on angle
             ptemp_diff = obj.gain*(cos(theta*pi/180)^2 * ptemp_uw...
                 + sin(theta*pi/180)^2 * ptemp_cw);
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the potential
             % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii
-            % Size of ellipsed that passes through the point
             dist = elliptical_dist_to(obj, lat, lon);
             if dist > 1 && dist <= 3
                 ptemp_diff = ptemp_diff * (1.5 - 0.5 * dist);	
@@ -268,8 +268,10 @@ classdef Updraft
                 + obj.coeff_cw(2,15)*sin(7*rel_dist*obj.coeff_cw(2,18))...
                 + obj.coeff_cw(2,16)*cos(8*rel_dist*obj.coeff_cw(2,18))...
                 + obj.coeff_cw(2,17)*sin(8*rel_dist*obj.coeff_cw(2,18));
-
-            humidity_diff = obj.gain*(cos(theta*pi/180)^2 * hum_uw + sin(theta*pi/180)^2 * hum_cw);
+            
+            % Average based on angle
+            humidity_diff = obj.gain*(cos(theta*pi/180)^2 * hum_uw ...
+                + sin(theta*pi/180)^2 * hum_cw);
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the potential
             % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii
