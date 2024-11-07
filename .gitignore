@@ -5,6 +5,7 @@
 
 # Images
 *.png
+*.jpg
 
 # Datasets
 *.txt
