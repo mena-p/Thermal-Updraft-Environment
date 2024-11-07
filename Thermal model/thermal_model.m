@@ -102,10 +102,10 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     rounded_alts = round([alt_nose, alt_left, alt_right]);
 
     % Concatenate the sounding data of all soundings
-    REPGPH = [sounding_buses(:).REPGPH];
-    PRESS = [sounding_buses(:).PRESS];
-    PTEMP = [sounding_buses(:).PTEMP];
-    VAPPRESS = [sounding_buses(:).VAPPRESS];
+    REPGPH = [sounding_buses(:).REPGPH]; % meter
+    PRESS = [sounding_buses(:).PRESS]; % Pa
+    PTEMP = [sounding_buses(:).PTEMP]; % K
+    VAPPRESS = [sounding_buses(:).VAPPRESS]; % Pa
 
     % Create logical mask for the heights below and above the aircraft
     % height (if you're trying to understand how this array magic works, 
@@ -167,18 +167,18 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     end
 
     % Compute the weighted average
-    p = weights' * p;
-    T = weights' * T;
-    vap_press = weights' * vap_press;
+    p = weights' * p; % in Pa
+    T = weights' * T; % in K
+    vap_press = weights' * vap_press; % in Pa
 
     % Compute the mixing ratio and specific humidity
     r = 0.622 * vap_press./(p - vap_press); % mixing ratio (kg water/kg dry air)
     q = r./(1 + r); % specific humidity (kg water/kg moist air)
 
     % Explicity set outputs so that C code generation can compile
-    p_out(1,1:3) = p(1,1:3);
-    T_out(1,1:3) = T(1,1:3);
-    q_out(1,1:3) = q(1,1:3);
+    p_out(1,1:3) = p(1,1:3); % in Pa
+    T_out(1,1:3) = T(1,1:3); % in K
+    q_out(1,1:3) = q(1,1:3); % kg water/kg moist air
 
     % Add the updraft's potential temperature and specific humidity excess to the
     % sounding data's values
@@ -188,13 +188,14 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     end
     
     % Convert the potential temperature to temperature
-    T_out = T_out .* (p_out./100000).^0.286;
+    T_out = T_out .* (p_out./100000).^0.286; % in K
     T_out = T_out(1,1:3); % again for code generation
     
     % Compute relative humidity
     r = q_out./(1 - q_out); % mixing ratio (kg water/kg dry air) after adding updraft's humidity excess
-    e = p_out .* r./(0.622 + r) ./100; % vapor pressure (hPa) after adding updraft's humidity excess
-    esat = 6.1094 .* exp(17.625 * (T_out - 273.15)./(T_out - 273.15 + 243.04)); % saturated vapor pressure hPa
+    e = (p_out./100) .* r./(0.622 + r) ; % vapor pressure (hPa) after adding updraft's humidity excess
+    f = 1.0007 + 3.46*10^(-6) .* (p_out./100); % enhancement factor
+    esat = f .* 6.1121 .* exp((((18.729 - (T_out-273.15)./227.3)) .* (T_out - 273.15)) ./ (T_out + 257.87 - 273.15)); % saturated vapor pressure hPa
     RH_out = e./esat;
     RH_out = RH_out(1,1:3) * 100;
 
