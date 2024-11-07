@@ -29,8 +29,8 @@ updraft.wind_dir = 0;
 
 dx = 0.01;
 % Generate vector of sample latitudes and longitudes
-lat = linspace(updraft.latitude - dx,updraft.latitude + dx,120);
-lon = linspace(updraft.longitude - dx,updraft.longitude + dx,120);
+lat = linspace(updraft.latitude - dx,updraft.latitude + dx,240);
+lon = linspace(updraft.longitude - dx,updraft.longitude + dx,240);
 
 % Create linspace out of the lat and lon vectors
 [lat, lon] = meshgrid(lat, lon);
@@ -56,36 +56,61 @@ for i = 1:size(lat,1)
     end
 end
 
+%% Plots
+close all
+centerLat = updraft.latitude;
+centerLon = updraft.longitude;
+delta = 0.005;
+lowLon = centerLon - delta;
+highLon = centerLon + delta;
+lowLat = centerLat - delta;
+highLat = centerLat + delta;
+
 % Plot the potential temperature difference in the grid
 figure
 surf(lat,lon,ptemp_diff, 'LineStyle','none')
-xlabel('lon')
-ylabel('lat')
+xlabel('lat')
+ylabel('lon')
+ylim([lowLon highLon])
+xlim([lowLat highLat])
 zlabel('\Delta\theta [K]')
 title('Potential Temperature Difference')
+a = colorbar;
+a.Label.String  = '\Delta\theta [K]';
 colormap(map);
+saveas(gcf,'Images/thermal_ptemp_2d','png')
 
 % Plot the humidity difference in the grid
 figure
 surf(lat,lon,humidity_diff, 'LineStyle','none')
-xlabel('lon')
-ylabel('lat')
+xlabel('lat')
+ylabel('lon')
+ylim([lowLon highLon])
+xlim([lowLat highLat])
 zlabel('\Deltaq [g/kg]')
 title('Specific Humidity Difference')
+b = colorbar;
+b.Label.String = '\Deltaq [g/kg]';
 colormap("sky");
+saveas(gcf,'Images/thermal_hum_2d','png')
 
 % Plot the ramp in the grid
 figure
 surf(lat,lon,ramp, 'LineStyle','none')
-xlabel('lon')
-ylabel('lat')
+xlabel('lat')
+ylabel('lon')
+ylim([lowLon highLon])
+xlim([lowLat highLat])
 zlabel('Scaling Factor [-]')
 title('Scaling Function')
+d = colorbar;
+d.Label.String  = 'Scaling Factor [-]';
 colormap("gray")
+saveas(gcf,'Images/thermal_scaling_function_2d','png')
 
 
 
-% Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
+%% Method 2: Interpolation of the two profiles using griddata %%%%%%%%%%%%%%%%%%%%%%%%
 % Get lat and lon values of the meshgrid separately
 
 load("coeff_cw.mat")
@@ -181,7 +206,7 @@ ptemp = [ptemp_x; ptemp_y];
 % Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
 ptemp2 = griddata(lats,lons,ptemp,xq,yq,"linear");
 
-% Plot the interpolated values and the original values as a line plot
+% Plot the interpolated values
 figure
 surf(xq,yq,ptemp2, 'LineStyle','none')
 xlabel('x')
@@ -189,4 +214,5 @@ ylabel('y')
 zlabel('ptemp')
 title('Linearly Interpolated Potential Temperature')
 zlabel('\Delta\theta [K]')
+colorbar
 colormap(map);
