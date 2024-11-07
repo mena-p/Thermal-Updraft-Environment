@@ -101,20 +101,24 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     alts = [alt_nose, alt_left, alt_right];
     rounded_alts = round([alt_nose, alt_left, alt_right]);
 
-    % Concatenate the sounding data
+    % Concatenate the sounding data of all soundings
     REPGPH = [sounding_buses(:).REPGPH];
     PRESS = [sounding_buses(:).PRESS];
     PTEMP = [sounding_buses(:).PTEMP];
     VAPPRESS = [sounding_buses(:).VAPPRESS];
 
+    % Create logical mask for the heights below and above the aircraft
+    % height (if you're trying to understand how this array magic works, 
+    % run the test_thermal_model script and use breakpoints to
+    % see what's happening to the arrays!)
     logical_mask_below = false(numLevels,num_soundings,3);
     logical_mask_above = false(numLevels,num_soundings,3);
-    % Create logical mask for the heights below and above the aircraft height
     for k = 1:3
         logical_mask_below(:,:,k) = REPGPH < rounded_alts(k);
         logical_mask_above(:,:,k) = REPGPH >= rounded_alts(k);
 
-        % Find indexes of the heights directly below and directly above the aircraft height
+        % Find indexes of the heights directly below and directly above
+        % the aircraft height. 
         logical_mask_below(:,:,k) = REPGPH == max(REPGPH.*logical_mask_below(:,:,k),[],1);
         REPGPH_temp = REPGPH;
         REPGPH_temp(~logical_mask_above(:,:,k)) = NaN;
@@ -171,13 +175,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     r = 0.622 * vap_press./(p - vap_press); % mixing ratio (kg water/kg dry air)
     q = r./(1 + r); % specific humidity (kg water/kg moist air)
 
-    % Get the sounding's pressure, temperature and specific humidity at that height
-    %p = sounding_data.PRESS(logical_mask,1);
-    %T = sounding_data.TEMP(logical_mask,1);
-    %vap_press = sounding_data.VAPPRESS(logical_mask,1);
-    %r = 0.622 * vap_press/(p - vap_press); % mixing ratio (kg water/kg dry air)
-    %q = r/(1 + r); % specific humidity (kg water/kg moist air)
-
+    % Explicity set outputs so that C code generation can compile
     p_out(1,1:3) = p(1,1:3);
     T_out(1,1:3) = T(1,1:3);
     q_out(1,1:3) = q(1,1:3);
@@ -189,9 +187,9 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         q_out(i) = q_out(i) + updrafts{updraft_index}.humidity_diff(lats(i),lons(i))/1000;
     end
     
-    % Compute the temperature from the potential temperature
+    % Convert the potential temperature to temperature
     T_out = T_out .* (p_out./100000).^0.286;
-    T_out = T_out(1,1:3);
+    T_out = T_out(1,1:3); % again for code generation
     
     % Compute relative humidity
     r = q_out./(1 - q_out); % mixing ratio (kg water/kg dry air) after adding updraft's humidity excess
