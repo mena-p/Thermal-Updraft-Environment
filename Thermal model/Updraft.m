@@ -7,10 +7,12 @@ classdef Updraft
         wind_dir {mustBeNumeric}
         coeff_uw {mustBeNumeric}
         coeff_cw {mustBeNumeric}
+        radius_uw {mustBeNumeric}
+        radius_cw {mustBeNumeric}
     end
 
     methods
-        function obj = Updraft(lat, lon)
+        function obj = Updraft(lat, lon, zi)
             obj.latitude = lat;
             obj.longitude = lon;
             obj.gain = max(0.25,1+randn(1));
@@ -18,10 +20,26 @@ classdef Updraft
             obj.wind_dir = rand(1)*360;
             obj.coeff_uw = Updraft.load_coeff_uw();
             obj.coeff_cw = Updraft.load_coeff_cw();
-
+            obj.radius_uw = downwind_radius(obj,zi);
+            obj.radius_cw = crosswind_radius(obj,zi);
         end
 
-        function outer_radius = outer_radius(obj,z,zi)
+        function outer_radius = outer_radius(obj,zi)
+            % This function calculates the outer radius of the updraft at a given height.
+            % Inputs:
+            % z = Aircraft height above ground (m)
+            % zi = Mixed layer height (m)
+            % Outputs:
+            % outer_radius = Outer radius of the updraft at the given height (m)
+            % 
+            % The outer radius is fixed since Hardt's model does not include 
+            % a vertical profile of the updraft size
+
+            % This is the mean radius, the crosswind and downwind radii still need to be calculated
+            outer_radius = 0.5 * (0.4 + 0.6*rand(1)) * zi;
+        end
+
+        function inner_radius = inner_radius(obj,zi)
             % This function calculates the outer radius of the updraft at a given height.
             % Inputs:
             % z = Aircraft height above ground (m)
@@ -29,41 +47,35 @@ classdef Updraft
             % Outputs:
             % outer_radius = Outer radius of the updraft at the given height (m)
 
-            % Calculate average updraft size at this height
-            zzi = z / zi;
-            mean_radius = (.102 * zzi^(1/3)) * (1 - (.25 * zzi)) * zi;
-
-            % Calculate outer radius of the updraft
-            outer_radius = mean_radius * obj.gain; % multiply by the perturbation gain
-            if outer_radius < 10
-                outer_radius = 10; % limit small updrafts to 20m diameter
-            end
-            outer_radius = 600 * obj.gain;
+            % The inner radius is zero since Hardt's model does not include
+            % an inner radius
+            inner_radius = 0;
         end
 
-        function inner_radius = inner_radius(obj,z,zi)
-            % This function calculates the outer radius of the updraft at a given height.
+        function dw_radius = downwind_radius(obj,zi)
+            % This function calculates the downwind radius of the updraft at a given height.
             % Inputs:
             % z = Aircraft height above ground (m)
             % zi = Mixed layer height (m)
             % Outputs:
-            % outer_radius = Outer radius of the updraft at the given height (m)
+            % dw_radius = Downwind radius of the updraft at the given height (m)
 
-            % Calculate average updraft size at this height
-            zzi = z / zi;
-            mean_radius = (.102 * zzi^(1/3)) * (1 - (.25 * zzi)) * zi;
+            % The downwind radius is fixed since Hardt's model does not include 
+            % a vertical profile of the updraft size
+            dw_radius = 4/3 * obj.outer_radius(zi);
+        end
 
-            % Calculate outer radius of the updraft
-            outer_radius = mean_radius * obj.gain; % multiply by the perturbation gain
-            if outer_radius < 10
-                outer_radius = 10; % limit small updrafts to 20m diameter
-            end
-            if outer_radius < 600
-                ratio = .0011 * outer_radius + .14;
-            else
-                ratio = .8;
-            end
-            inner_radius = ratio * outer_radius;
+        function cw_radius = crosswind_radius(obj,zi)
+            % This function calculates the crosswind radius of the updraft at a given height.
+            % Inputs:
+            % z = Aircraft height above ground (m)
+            % zi = Mixed layer height (m)
+            % Outputs:
+            % cw_radius = Crosswind radius of the updraft at the given height (m)
+
+            % The crosswind radius is fixed since Hardt's model does not include 
+            % a vertical profile of the updraft size
+            cw_radius = 2/3 * obj.outer_radius(zi);
         end
 
         function dist = distance_to(obj, lat, lon)
@@ -78,6 +90,21 @@ classdef Updraft
             coder.extrinsic('distance');
             dist = zeros(1);
             dist = distance(lat, lon, obj.latitude, obj.longitude, wgs84);
+        end
+
+        function dist = elliptical_dist_to(obj, lat, lon)
+            
+            % returns 1 if the point is at the boundary of the thermal, 2
+            % if at the boundary of a thermal twice as large, etc.                     
+
+            latdist = (lat - obj.latitude);
+            londist = (lon - obj.longitude);
+
+            % Convert to meters
+            latdist = abs(latdist * 111000);
+            londist = abs(londist * 111000);
+
+            dist = ((cos(obj.wind_dir)*(latdist) + sin(obj.wind_dir)*(londist))^2)/obj.radius_uw^2 + ((sin(obj.wind_dir)*(latdist) - cos(obj.wind_dir)*(londist))^2)/obj.radius_cw^2;
         end
 
         function angle_from_updraft = angle_to(obj, lat, lon)
@@ -107,8 +134,10 @@ classdef Updraft
             % alt = Aircraft height above ground (m)
             % Outputs:
             % is_inside = Boolean value indicating if the aircraft is inside the updraft
-
-            is_inside = obj.distance_to(lat,lon) < obj.outer_radius(alt,zi);
+            
+            %is_inside = obj.distance_to(lat,lon) < obj.outer_radius(zi);
+            
+            is_inside = elliptical_dist_to(obj, lat, lon) <= 1;
         end
 
         function ptemp_diff = ptemp_diff(obj,lat,lon)
@@ -118,20 +147,67 @@ classdef Updraft
 
             % Get the angle and relative distance of the aircraft to the updraft
             theta = obj.angle_to(lat,lon);
-            rel_dist = obj.distance_to(lat,lon) ./ obj.outer_radius(0,0);
+            dist = obj.distance_to(lat,lon);
+
+            % Calculate the x and y components of the distance vector from the updraft to the aircraft
+            deltaX = cosd(theta) * dist;
+            deltaY = sind(theta) * dist;
+
+            % Normalize from an ellipse to a circle
+            deltaX = deltaX/obj.radius_uw;
+            deltaY = deltaY/obj.radius_cw;
+
+            % Calculate relative distance from the updraft in the unit circle
+            rel_dist = sqrt(deltaX^2 + deltaY^2);
             
             % Calculate the potential temperature difference at the aircraft's position
             % by averaging the upwind and crosswind profiles based on the angle to the updraft
-            ptemp_uw = obj.coeff_uw(1,1) + obj.coeff_uw(1,2)*cos(rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,3)*sin(rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,4)*cos(2*rel_dist*obj.coeff_uw(1,6)) + obj.coeff_uw(1,5)*sin(2*rel_dist*obj.coeff_uw(1,6));
-            ptemp_cw = obj.coeff_cw(1,1) + obj.coeff_cw(1,2)*cos(rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,3)*sin(rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,4)*cos(2*rel_dist*obj.coeff_cw(1,6)) + obj.coeff_cw(1,5)*sin(2*rel_dist*obj.coeff_cw(1,6));
+            ptemp_uw = obj.coeff_uw(1,1) + ...
+                obj.coeff_uw(1,2)*cos(rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,3)*sin(rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,4)*cos(2*rel_dist*obj.coeff_uw(1,18)) ...
+                + obj.coeff_uw(1,5)*sin(2*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,6)*cos(3*rel_dist*obj.coeff_uw(1,18)) ...
+                + obj.coeff_uw(1,7)*sin(3*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,8)*cos(4*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,9)*sin(4*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,10)*cos(5*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,11)*sin(5*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,12)*cos(6*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,13)*sin(6*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,14)*cos(7*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,15)*sin(7*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,16)*cos(8*rel_dist*obj.coeff_uw(1,18))...
+                + obj.coeff_uw(1,17)*sin(8*rel_dist*obj.coeff_uw(1,18));
+
+            ptemp_cw = obj.coeff_cw(1,1) + ...
+                obj.coeff_cw(1,2)*cos(rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,3)*sin(rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,4)*cos(2*rel_dist*obj.coeff_cw(1,18)) ...
+                + obj.coeff_cw(1,5)*sin(2*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,6)*cos(3*rel_dist*obj.coeff_cw(1,18)) ...
+                + obj.coeff_cw(1,7)*sin(3*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,8)*cos(4*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,9)*sin(4*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,10)*cos(5*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,11)*sin(5*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,12)*cos(6*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,13)*sin(6*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,14)*cos(7*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,15)*sin(7*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,16)*cos(8*rel_dist*obj.coeff_cw(1,18))...
+                + obj.coeff_cw(1,17)*sin(8*rel_dist*obj.coeff_cw(1,18));
             
-            ptemp_diff = obj.gain*(cos(theta*pi/180)^2 * ptemp_uw + sin(theta*pi/180)^2 * ptemp_cw);
+            % Average based on angle
+            ptemp_diff = obj.gain*(cos(theta*pi/180)^2 * ptemp_uw...
+                + sin(theta*pi/180)^2 * ptemp_cw);
 
             % Multiply by ramp function if the aircraft is outside the updraft, such that the potential
-            % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii 
-            if obj.distance_to(lat,lon) > obj.outer_radius(0,0) && obj.distance_to(lat,lon) <= 3 * obj.outer_radius(0,0)
-                ptemp_diff = ptemp_diff * (1 - (obj.distance_to(lat,lon) - obj.outer_radius(0,0)) / (2*obj.outer_radius(0,0)));
-            elseif obj.distance_to(lat,lon) > 3 * obj.outer_radius(0,0)
+            % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii
+            dist = elliptical_dist_to(obj, lat, lon);
+            if dist > 1 && dist <= 3
+                ptemp_diff = ptemp_diff * (1.5 - 0.5 * dist);	
+            elseif dist > 3
                 ptemp_diff = 0;
             end
         end
@@ -143,19 +219,67 @@ classdef Updraft
 
             % Get the angle and relative distance of the aircraft to the updraft
             theta = obj.angle_to(lat,lon);
-            rel_dist = obj.distance_to(lat,lon) / obj.outer_radius(0,0);
+            dist = obj.distance_to(lat,lon);
+
+            % Calculate the x and y components of the distance vector from the updraft to the aircraft
+            deltaX = cosd(theta) * dist;
+            deltaY = sind(theta) * dist;
+
+            % Normalize from an ellipse to a circle
+            deltaX = deltaX/obj.radius_uw;
+            deltaY = deltaY/obj.radius_cw;
+
+            % Calculate relative distance from the updraft in the unit circle
+            rel_dist = sqrt(deltaX^2 + deltaY^2);
 
             % Calculate the specific humidity difference at the aircraft's position
-            hum_uw = obj.coeff_uw(2,1) + obj.coeff_uw(2,2)*cos(rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,3)*sin(rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,4)*cos(2*rel_dist*obj.coeff_uw(2,6)) + obj.coeff_uw(2,5)*sin(2*rel_dist*obj.coeff_uw(2,6));
-            hum_cw = obj.coeff_cw(2,1) + obj.coeff_cw(2,2)*cos(rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,3)*sin(rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,4)*cos(2*rel_dist*obj.coeff_cw(2,6)) + obj.coeff_cw(2,5)*sin(2*rel_dist*obj.coeff_cw(2,6));
+            hum_uw = obj.coeff_uw(2,1) + ...
+                obj.coeff_uw(2,2)*cos(rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,3)*sin(rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,4)*cos(2*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,5)*sin(2*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,6)*cos(3*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,7)*sin(3*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,8)*cos(4*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,9)*sin(4*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,10)*cos(5*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,11)*sin(5*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,12)*cos(6*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,13)*sin(6*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,14)*cos(7*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,15)*sin(7*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,16)*cos(8*rel_dist*obj.coeff_uw(2,18))...
+                + obj.coeff_uw(2,17)*sin(8*rel_dist*obj.coeff_uw(2,18));
 
-            humidity_diff = obj.gain*(cos(theta*pi/180)^2 * hum_uw + sin(theta*pi/180)^2 * hum_cw);
+            hum_cw = obj.coeff_cw(2,1) + ...
+                obj.coeff_cw(2,2)*cos(rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,3)*sin(rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,4)*cos(2*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,5)*sin(2*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,6)*cos(3*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,7)*sin(3*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,8)*cos(4*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,9)*sin(4*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,10)*cos(5*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,11)*sin(5*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,12)*cos(6*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,13)*sin(6*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,14)*cos(7*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,15)*sin(7*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,16)*cos(8*rel_dist*obj.coeff_cw(2,18))...
+                + obj.coeff_cw(2,17)*sin(8*rel_dist*obj.coeff_cw(2,18));
+            
+            % Average based on angle
+            humidity_diff = obj.gain*(cos(theta*pi/180)^2 * hum_uw ...
+                + sin(theta*pi/180)^2 * hum_cw);
 
-            % Multiply by ramp function if the aircraft is outside the updraft, such that the humidity
-            % difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii 
-            if obj.distance_to(lat,lon) > obj.outer_radius(0,0) && obj.distance_to(lat,lon) <= 3 * obj.outer_radius(0,0)
-                humidity_diff = humidity_diff * (1 - (obj.distance_to(lat,lon) - obj.outer_radius(0,0)) / (2*obj.outer_radius(0,0)));
-            elseif obj.distance_to(lat,lon) > 3 * obj.outer_radius(0,0)
+            % Multiply by ramp function if the aircraft is outside the updraft, such that the potential
+            % temperature difference is multiplied by 1 at the outer radius and by zero at a distance of 3 outer radii
+            % Size of ellipsed that passes through the point
+            dist = elliptical_dist_to(obj, lat, lon);
+            if dist > 1 && dist <= 3
+                humidity_diff = humidity_diff * (1.5 - 0.5 * dist);	
+            elseif dist > 3
                 humidity_diff = 0;
             end
         end
@@ -177,7 +301,7 @@ classdef Updraft
             coeff = data.coeff_uw;
 
             % create vector of random perturbations
-            perturbation = [randn(1, 6) * 0.2 + 1; randn(1, 6) * 0.2 + 1];
+            perturbation = [randn(1, 18) * 0.2 + 1; randn(1, 18) * 0.2 + 1];
 
             % multiply coefficients by perturbation
             coeff = coeff .* perturbation;
@@ -197,7 +321,7 @@ classdef Updraft
             coeff = data.coeff_cw;
 
             % create vector of random perturbations
-            perturbation = [randn(1, 6) * 0.2 + 1; randn(1, 6) * 0.2 + 1];
+            perturbation = [randn(1, 18) * 0.2 + 1; randn(1, 18) * 0.2 + 1];
 
             % multiply coefficients by perturbation
             coeff = coeff .* perturbation;

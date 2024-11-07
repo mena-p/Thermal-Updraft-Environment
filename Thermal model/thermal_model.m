@@ -35,7 +35,6 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     left_wingtip = [0; -glider.wingspan/2; 0];
     righ_wingtip = [0; glider.wingspan/2; 0];
 
-
     % Transform to NED frame   
     nose = Mob * nose;
     left_wingtip = Mob * left_wingtip;
@@ -102,20 +101,24 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     alts = [alt_nose, alt_left, alt_right];
     rounded_alts = round([alt_nose, alt_left, alt_right]);
 
-    % Concatenate the sounding data
+    % Concatenate the sounding data of all soundings
     REPGPH = [sounding_buses(:).REPGPH];
     PRESS = [sounding_buses(:).PRESS];
-    TEMP = [sounding_buses(:).TEMP];
+    PTEMP = [sounding_buses(:).PTEMP];
     VAPPRESS = [sounding_buses(:).VAPPRESS];
 
+    % Create logical mask for the heights below and above the aircraft
+    % height (if you're trying to understand how this array magic works, 
+    % run the test_thermal_model script and use breakpoints to
+    % see what's happening to the arrays!)
     logical_mask_below = false(numLevels,num_soundings,3);
     logical_mask_above = false(numLevels,num_soundings,3);
-    % Create logical mask for the heights below and above the aircraft height
     for k = 1:3
         logical_mask_below(:,:,k) = REPGPH < rounded_alts(k);
         logical_mask_above(:,:,k) = REPGPH >= rounded_alts(k);
 
-        % Find indexes of the heights directly below and directly above the aircraft height
+        % Find indexes of the heights directly below and directly above
+        % the aircraft height. 
         logical_mask_below(:,:,k) = REPGPH == max(REPGPH.*logical_mask_below(:,:,k),[],1);
         REPGPH_temp = REPGPH;
         REPGPH_temp(~logical_mask_above(:,:,k)) = NaN;
@@ -141,7 +144,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         % using linear interpolation
         for k = 1:3
             p(:,k) = PRESS(logical_mask_below(:,:,k)) + (PRESS(logical_mask_above(:,:,k)) - PRESS(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));
-            T(:,k) = TEMP(logical_mask_below(:,:,k)) + (TEMP(logical_mask_above(:,:,k)) - TEMP(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));
+            T(:,k) = PTEMP(logical_mask_below(:,:,k)) + (PTEMP(logical_mask_above(:,:,k)) - PTEMP(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));
             vap_press(:,k) = VAPPRESS(logical_mask_below(:,:,k)) + (VAPPRESS(logical_mask_above(:,:,k)) - VAPPRESS(logical_mask_below(:,:,k)))./(REPGPH(logical_mask_above(:,:,k)) - REPGPH(logical_mask_below(:,:,k))) .* (alts(k) - REPGPH(logical_mask_below(:,:,k)));   
         end
     % Compute the distance averaged pressure, temperature and specific humidity at that height
@@ -172,13 +175,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     r = 0.622 * vap_press./(p - vap_press); % mixing ratio (kg water/kg dry air)
     q = r./(1 + r); % specific humidity (kg water/kg moist air)
 
-    % Get the sounding's pressure, temperature and specific humidity at that height
-    %p = sounding_data.PRESS(logical_mask,1);
-    %T = sounding_data.TEMP(logical_mask,1);
-    %vap_press = sounding_data.VAPPRESS(logical_mask,1);
-    %r = 0.622 * vap_press/(p - vap_press); % mixing ratio (kg water/kg dry air)
-    %q = r/(1 + r); % specific humidity (kg water/kg moist air)
-
+    % Explicity set outputs so that C code generation can compile
     p_out(1,1:3) = p(1,1:3);
     T_out(1,1:3) = T(1,1:3);
     q_out(1,1:3) = q(1,1:3);
@@ -189,6 +186,11 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         T_out(i) = T_out(i) + updrafts{updraft_index}.ptemp_diff(lats(i),lons(i));
         q_out(i) = q_out(i) + updrafts{updraft_index}.humidity_diff(lats(i),lons(i))/1000;
     end
+    
+    % Convert the potential temperature to temperature
+    T_out = T_out .* (p_out./100000).^0.286;
+    T_out = T_out(1,1:3); % again for code generation
+    
     % Compute relative humidity
     r = q_out./(1 - q_out); % mixing ratio (kg water/kg dry air) after adding updraft's humidity excess
     e = p_out .* r./(0.622 + r) ./100; % vapor pressure (hPa) after adding updraft's humidity excess
@@ -202,7 +204,7 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         % We add the updraft's potential temperature and specific humidity excess to the
         % sounding data's values
         
-        %% Get (virtual) potential temperature values at the aircrafts height
+        %% Get (virtual) potential temperature values at the surface
         %Tp = sounding_data.PTEMP(1,1);
         %Tv = sounding_data.VTEMP(1,1);
 
