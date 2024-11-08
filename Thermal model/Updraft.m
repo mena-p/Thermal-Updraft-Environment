@@ -7,6 +7,7 @@ classdef Updraft
         wind_dir {mustBeNumeric}
         coeff_uw {mustBeNumeric}
         coeff_cw {mustBeNumeric}
+        mean_radius {mustBeNumeric}
         radius_uw {mustBeNumeric}
         radius_cw {mustBeNumeric}
     end
@@ -20,6 +21,7 @@ classdef Updraft
             obj.wind_dir = rand(1)*360;
             obj.coeff_uw = Updraft.load_coeff_uw();
             obj.coeff_cw = Updraft.load_coeff_cw();
+            obj.mean_radius = outer_radius(obj,zi);
             obj.radius_uw = downwind_radius(obj,zi);
             obj.radius_cw = crosswind_radius(obj,zi);
         end
@@ -62,7 +64,7 @@ classdef Updraft
 
             % The downwind radius is fixed since Hardt's model does not include 
             % a vertical profile of the updraft size
-            dw_radius = 4/3 * obj.outer_radius(zi);
+            dw_radius = 4/3 * obj.mean_radius;
         end
 
         function cw_radius = crosswind_radius(obj,zi)
@@ -75,7 +77,7 @@ classdef Updraft
 
             % The crosswind radius is fixed since Hardt's model does not include 
             % a vertical profile of the updraft size
-            cw_radius = 2/3 * obj.outer_radius(zi);
+            cw_radius = 2/3 * obj.mean_radius;
         end
 
         function dist = distance_to(obj, lat, lon)
@@ -97,14 +99,13 @@ classdef Updraft
             % returns 1 if the point is at the boundary of the thermal, 2
             % if at the boundary of a thermal twice as large, etc.                     
 
-            latdist = (lat - obj.latitude);
-            londist = (lon - obj.longitude);
+            % convert lat/lon to local NED centered at updraft position
+            [x,y,~] = geodetic2ned(lat, lon, 0, obj.latitude, obj.longitude, 0, wgs84Ellipsoid("meter"));
+            alpha = obj.wind_dir;
+            rx = obj.radius_uw;
+            ry = obj.radius_cw;       
 
-            % Convert to meters
-            latdist = abs(latdist * 111000);
-            londist = abs(londist * 111000);
-
-            dist = ((cos(obj.wind_dir)*(latdist) + sin(obj.wind_dir)*(londist))^2)/obj.radius_uw^2 + ((sin(obj.wind_dir)*(latdist) - cos(obj.wind_dir)*(londist))^2)/obj.radius_cw^2;
+            dist = ((x)*cosd(alpha) + (y)*sind(alpha)).^2/rx^2 + ((x)*sind(alpha) - (y)*cosd(alpha)).^2/ry^2;
         end
 
         function angle_from_updraft = angle_to(obj, lat, lon)
@@ -301,7 +302,7 @@ classdef Updraft
             coeff = data.coeff_uw;
 
             % create vector of random perturbations
-            perturbation = [randn(1, 18) * 0.2 + 1; randn(1, 18) * 0.2 + 1];
+            perturbation = [1 randn(1, 17) * 0.0002 + 1;  1 randn(1, 17) * 0.0002 + 1];
 
             % multiply coefficients by perturbation
             coeff = coeff .* perturbation;
@@ -321,7 +322,7 @@ classdef Updraft
             coeff = data.coeff_cw;
 
             % create vector of random perturbations
-            perturbation = [randn(1, 18) * 0.2 + 1; randn(1, 18) * 0.2 + 1];
+            perturbation = [1 randn(1, 17) * 0.0002 + 1;  1 randn(1, 17) * 0.0002 + 1];
 
             % multiply coefficients by perturbation
             coeff = coeff .* perturbation;
