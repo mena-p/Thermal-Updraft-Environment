@@ -100,7 +100,7 @@ classdef Updraft
             % if at the boundary of a thermal twice as large, etc.                     
 
             % convert lat/lon to local NED centered at updraft position
-            [x,y,~] = geodetic2ned(lat, lon, 0, obj.latitude, obj.longitude, 0, wgs84Ellipsoid("meter"));
+            [x,y,~] = geodetic2ned(lat, lon, 0, obj.latitude, obj.longitude, 0, wgs84Ellipsoid());
             alpha = obj.wind_dir;
             rx = obj.radius_uw;
             ry = obj.radius_cw;       
