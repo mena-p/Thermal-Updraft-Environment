@@ -1,4 +1,4 @@
-function error = avg_error_press(c,d,sensorData,sounding_buses)
+function error = avg_error_press(b,d,sensorData,sounding_buses)
     n = 20001; % tune on first 400 seconds, max 15km from aerodrome
     err = zeros(1,n);
     for i = 1:n
@@ -23,9 +23,9 @@ function error = avg_error_press(c,d,sensorData,sounding_buses)
             return;
         end
         p = sounding_buses.PRESS(logical_mask)/100;
-        p = p(1,1) + c + d * v_squared;
+        p = p(1,1) + b + d * v_squared;
         measured_p = sensorData.pressure(i);
-        err(i) = sqrt((p - measured_p)^2);
+        err(i) = (p - measured_p)^2;
     end
     error = sum(err)/n;
 end
