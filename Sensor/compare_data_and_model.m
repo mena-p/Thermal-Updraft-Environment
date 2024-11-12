@@ -154,7 +154,7 @@ xlim([low high])
 hold on
 xline(idx, '--','HandleVisibility','off')
 %% Plot flight and the used station in geoaxes
-f = figure;
+figure
 geoplot(flight.trajectory.lat.lat, flight.trajectory.lon.lon)
 hold on
 plot(sounding_buses.lat(1), sounding_buses.lon(1), 'b^', 'LineStyle', 'none')
