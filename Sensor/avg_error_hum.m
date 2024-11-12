@@ -1,5 +1,5 @@
 function error = avg_error_hum(c,sensorData,sounding_buses)
-    n = 20001; % tune on first 400 seconds, max 15km from aerodrome
+    n = length(sensorData.time);
     err = zeros(1,n);
     for i = 1:n
         alt = sensorData.gps_altitude(i);
@@ -25,7 +25,7 @@ function error = avg_error_hum(c,sensorData,sounding_buses)
         RH = sounding_buses.REPRH(logical_mask);
         RH = RH(1,1) + c;
         measured_RH = sensorData.humidity(i);
-        err(i) = sqrt((RH - measured_RH)^2);
+        err(i) = (RH - measured_RH)^2;
     end
     error = sum(err)/n;
 end
