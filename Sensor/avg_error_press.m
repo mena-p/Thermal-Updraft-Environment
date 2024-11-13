@@ -1,5 +1,5 @@
 function error = avg_error_press(b,d,sensorData,sounding_buses)
-    n = 20001; % tune on first 400 seconds, max 15km from aerodrome
+    n = length(sensorData.time);
     err = zeros(1,n);
     for i = 1:n
         alt = sensorData.gps_altitude(i);
