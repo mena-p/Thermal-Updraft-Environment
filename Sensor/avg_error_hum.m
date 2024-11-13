@@ -22,7 +22,7 @@ function error = avg_error_hum(c,sensorData,sounding_buses)
             warning on backtrace
             return;
         end
-        RH = sounding_buses.REPRH(logical_mask);
+        RH = sounding_buses.REPRH(logical_mask); %sounding_buses(uint32(alt+1)) % to tune with flight data profile;
         RH = RH(1,1) + c;
         measured_RH = sensorData.humidity(i);
         err(i) = (RH - measured_RH)^2;
