@@ -62,20 +62,20 @@ corr_p2 = corrcoef(realp(alts<2004),sensorp(alts<2004));
 zi = 2004;
 
 close all
-figure('Position', [10 10 900 300])
+f1 = figure('Position', [10 10 900 300]);
 plot(simtimes(2:end), realT(2:end),"Color","b")
 hold on
 plot(simtimes(2:end), thermalT(2:end),'Color','#0072BD')
 plot(simtimes(2:end),sensorT(2:end))
-legend('Flight Test', 'Thermal Model','Sensor Model',"Location","northwest")
+legend('Flight Test', 'Thermal Model','Sensor Model',"Location","southeast")
 xlabel('Flight Time [s]')
 ylabel("Temperature [K]")
 xlim([0 12183])
 %xline(idx, '--','HandleVisibility','off')
 grid on
-%saveas(gcf,"Images/Sensor/comparison-temp",'png')
+saveas(f1,"Images/Validation/comparison-temp",'png')
 
-figure('Position', [10 10 900 300])
+f2 = figure('Position', [10 10 900 300]);
 plot(simtimes,realRH,"Color","b")
 hold on
 plot(simtimes,thermalRH,'Color','#0072BD')
@@ -86,9 +86,9 @@ ylabel("Relative Humidity [%]")
 xlim([0 12183])
 %xline(idx, '--','HandleVisibility','off')
 grid on
-%saveas(gcf,"Images/Sensor/comparison-hum",'png')
+saveas(f2,"Images/Validation/comparison-hum",'png')
 
-figure('Position', [10 10 900 300])
+f3 = figure('Position', [10 10 900 300]);
 plot(simtimes,realp,"Color","b")
 hold on
 plot(simtimes,thermalp,'Color','#0072BD')
@@ -98,7 +98,7 @@ xlabel('Flight Time [s]')
 ylabel("Pressure [Pa]")
 xlim([0 12183])
 grid on
-%saveas(gcf,"Images/Sensor/comparison-press",'png')
+saveas(f3,"Images/Validation/comparison-press",'png')
 
 figure('Position', [10 10 900 300])
 plot(simtimes, alts)
