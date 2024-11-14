@@ -26,40 +26,43 @@ function active_stations = find_active_stations(flight, stations, max_dist)
     mean_lat = mean(trajectory.lat.lat);
     mean_lon = mean(trajectory.lon.lon);
     
-    % Only keep stations working during the flight year
-    mask = [stations.firstYear] <= datenum(flightYear) & [stations.lastYear] ...
-        >= datenum(flightYear);
-    stations = stations(mask, :);
+    
     
     % Initialize output
     active_stations = [];
     while(isempty(active_stations))
+        
+        % Only keep stations working during the flight year
+        mask = [stations.firstYear] <= datenum(flightYear) & [stations.lastYear] ...
+        >= datenum(flightYear);
+        filtered_stations = stations(mask, :);
+
         % Filter out stations further away than max_dist
-        dist1 = distance([stations.lat], [stations.lon], max_lat, max_lon,...
+        dist1 = distance([filtered_stations.lat], [filtered_stations.lon], max_lat, max_lon,...
             wgs84Ellipsoid);
-        dist2 = distance([stations.lat], [stations.lon], max_lat, min_lon,...
+        dist2 = distance([filtered_stations.lat], [filtered_stations.lon], max_lat, min_lon,...
             wgs84Ellipsoid);
-        dist3 = distance([stations.lat], [stations.lon], min_lat, max_lon,...
+        dist3 = distance([filtered_stations.lat], [filtered_stations.lon], min_lat, max_lon,...
             wgs84Ellipsoid);
-        dist4 = distance([stations.lat], [stations.lon], min_lat, min_lon,...
+        dist4 = distance([filtered_stations.lat], [filtered_stations.lon], min_lat, min_lon,...
             wgs84Ellipsoid);
-        dist5 = distance([stations.lat], [stations.lon], mean_lat, mean_lon,...
+        dist5 = distance([filtered_stations.lat], [filtered_stations.lon], mean_lat, mean_lon,...
             wgs84Ellipsoid);
 
         mask = dist1 < max_dist | dist2 < max_dist | dist3 < max_dist | ...
             dist4 < max_dist | dist5 < max_dist;
-        stations = stations(mask,:);
+        filtered_stations = filtered_stations(mask,:);
 
         % Find out which stations are not up to date and update their files
-        old_stations = stations(stations.lastUpdate < date, :);
+        old_stations = filtered_stations(filtered_stations.lastUpdate < date, :);
         if(~isempty(old_stations))
             download_station_files(old_stations);
         end
 
         % Find out which stations are active on the day of the flight with the cache
         active_stations = [];
-        for i = 1:size(stations,1)
-            station = stations(i,:);
+        for i = 1:size(filtered_stations,1)
+            station = filtered_stations(i,:);
             filename = fullfile('IGRA-Parser', 'Cache', strcat(station.ID, '-cache.mat'));
             if isfile(filename)
                 load(filename, 'cache');
