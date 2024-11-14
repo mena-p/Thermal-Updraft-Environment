@@ -1,5 +1,5 @@
 function soundings = parse_derived_by_date(stationID, date)
-    % Usage: exampleOutput = parse_sounding('GMM00010868-drvd.txt','31.01.2019');
+    % Usage: soundings = parse_derived_by_date('GMM00010868','31.01.2019');
     % This function searches an IGRA derived parameter file containing
     % multiple soundings for a sounding on the given date and returns 
     % a sounding object with the sounding if it is found. 
