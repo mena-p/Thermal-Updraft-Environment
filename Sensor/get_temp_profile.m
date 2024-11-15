@@ -1,4 +1,4 @@
-function [profile,altitude_bins] = get_humidity_profile(sensorData)
+function [profile,altitude_bins] = get_temp_profile(sensorData)
 %GET_HUMIDITY_PROFILE This function extracts the humidity profile from measured sensor data
 %   This function computes the vertical profile of humidity from the measured sensor data
 %   by binning the data into altitude bins and computing the mean humidity in each bin.
@@ -6,7 +6,7 @@ function [profile,altitude_bins] = get_humidity_profile(sensorData)
 %   The data is binned into 1m bins.
 
 
-humidity = sensorData.humidity;
+temp = sensorData.temperature + 273.15;
 altitude = sensorData.gps_altitude;
 
 % Compute the altitude bins
@@ -16,16 +16,16 @@ altitude_bins = 0:1:max(altitude);
 profile = zeros(1, length(altitude_bins));
 for i = 1:length(altitude_bins)
     bin = altitude_bins(i);
-    humidity_in_bin = humidity(altitude >= bin -0.1 & altitude < bin + 0.9);
-    profile(i) = mean(humidity_in_bin);
+    temp_in_bin = temp(altitude >= bin -0.1 & altitude < bin + 0.9);
+    profile(i) = mean(temp_in_bin);
 end
 
-% Plot the humidity profile
+% Plot the temperature profile
 figure
 plot(profile, altitude_bins)
-xlabel('Humidity (%)')
+xlabel('Temperature (K)')
 ylabel('Altitude (m)')
-title('Humidity Profile')
+title('Temperature Profile')
 
 end
 

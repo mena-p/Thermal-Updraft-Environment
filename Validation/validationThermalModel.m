@@ -4,11 +4,29 @@
 % portion that follows it, once with and once without a thermal. The
 % correlations are compared. Temperature and pressure come from the
 % sounding.
-
+clear
 close all
+
 % Load data
 sensorData = importSensorData('pedro_csv.csv');
 load("sounding_buses.mat","sounding_buses");
+latitude = sensorData.gps_y/111000;
+longitude = sensorData.gps_x/111000;
+humidity = sensorData.humidity;
+temperature = sensorData.temperature;
+altitude = sensorData.gps_altitude;
+
+% Choose descent and ascent portions
+descent = 46151:1:46151+19401;
+ascent = 46151+19401:1:46151+27551;
+diffs = diff(altitude(descent));
+diffs2 = diff(altitude(ascent));
+strong_descent = descent(diffs<0);
+
+% Get temp and hum profiles for descent
+[hum_profile, altitude_bins] = get_humidity_profile(sensorData(strong_descent,:));
+[temp_profile, ~] = get_temp_profile(sensorData(strong_descent,:));
+
 
 % Get data from the descent
 dataDescent = sensorData(46151:46151+19401,:);
@@ -16,38 +34,35 @@ humidity_profile = get_humidity_profile(dataDescent);
 humidity_descent = dataDescent.humidity;
 alt_descent = dataDescent.gps_altitude;
 
-% Plot humidity profile of sounding and the calculated profile
+% Plot descent/ascent trajectory
 figure
-plot(sounding_buses.REPRH, sounding_buses.REPGPH)
+geoplot(latitude(descent),longitude(descent));
 hold on
-plot(humidity_profile, 0:1:max(alt_descent))
-hold off
-xlabel('Humidity (%)')
-ylabel('Altitude (m)')
-title('Humidity Profile of Sounding')
+geoplot(latitude(ascent),longitude(ascent));
 
-
-% Calculate humidity on descent based on profile
-humidity_descent_profile = zeros(size(humidity_descent));
+% Calculate humidity on descent based on profile (sanity check)
+humidity_descent_calc = zeros(size(humidity(descent)));
+alt_descent = altitude(descent);
 for i = 1:size(humidity_descent,1)
     alt = alt_descent(i);
     alt = int32(round(alt));
-    humidity_descent_profile(i) = humidity_profile(alt);
+    humidity_descent_calc(i) = hum_profile(alt);
 end
 
 % Plot the descent humidity and the altitude in subplots
 figure
 subplot(2,1,1)
-plot(dataDescent.time, humidity_descent)
+plot(sensorData.time(descent), humidity(descent))
 hold on
-plot(dataDescent.time, humidity_descent_profile)
+plot(sensorData.time(descent), humidity_descent_calc)
 hold off
 xlabel('Time')
 ylabel('Humidity (%)')
 title('Humidity in descent')
 legend('raw data','calculated from profile')
 subplot(2,1,2)
-plot(dataDescent.time,alt_descent)
+time = sensorData.time(descent);
+plot(time(1:end-1),diffs)
 xlabel('Time')
 ylabel('Altitude (m)')
 title('Altitude from descent')
@@ -90,11 +105,11 @@ ylabel('Altitude (m)')
 title('Altitude from ascent')
 
 % Initialize updraft
-updraft = Updraft(49.0247,12.6251);
+updraft = Updraft(49.0247,12.6251,1600);
 updraft.gain = 1;
 
 % Initialize dummy updraft
-dummyUpdraft = Updraft(0,0);
+dummyUpdraft = Updraft(0,0, 100);
 
 % Size of iteration
 n = size(alt_ascent,1);
@@ -111,28 +126,28 @@ RHwithout = zeros(n,1);
 for i = 1:n
 
     % with updraft
-    [T,~,p,RH] = thermal_model(lat_ascent(i),lon_ascent(i),alt_ascent(i),{updraft},sounding_buses);
-    Twith(i) = T;
-    Pwith(i) = p;
-    RHwith(i) = RH;
+    [T,~,p,RH] = thermal_model(lat_ascent(i),lon_ascent(i),alt_ascent(i),[0 0 0],{updraft},sounding_buses);
+    Twith(i) = T(1);
+    Pwith(i) = p(1);
+    RHwith(i) = RH(1);
 
     % without updraft
-    [T,~,p,RH] = thermal_model(lat_ascent(i),lon_ascent(i),alt_ascent(i),{dummyUpdraft},sounding_buses);
-    Twithout(i) = T;
-    Pwithout(i) = p;
-    RHwithout(i) = RH;
+    [T,~,p,RH] = thermal_model(lat_ascent(i),lon_ascent(i),alt_ascent(i),[0 0 0],{dummyUpdraft},sounding_buses);
+    Twithout(i) = T(1);
+    Pwithout(i) = p(1);
+    RHwithout(i) = RH(1);
 end
 
-% plot humidity from the ascent, and RH with and without updraft
-figure
-plot(dataAscent.time,humidity_ascent)
-hold on
-plot(dataAscent.time,RHwith)
-plot(dataAscent.time,RHwithout)
-legend('Measured','With updraft','Without updraft')
-xlabel('Time')
-ylabel('Humidity (%)')
-title('Humidity from ascent and RH with and without updraft')
+% % plot humidity from the ascent, and RH with and without updraft
+% figure
+% plot(dataAscent.time,humidity_ascent)
+% hold on
+% plot(dataAscent.time,RHwith)
+% plot(dataAscent.time,RHwithout)
+% legend('Measured','With updraft','Without updraft')
+% xlabel('Time')
+% ylabel('Humidity (%)')
+% title('Humidity from ascent and RH with and without updraft')
 
 
 % Compute correlation coefficients between measured humidity and modelled
