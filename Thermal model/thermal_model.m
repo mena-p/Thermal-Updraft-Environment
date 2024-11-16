@@ -79,23 +79,22 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         error('No updrafts were provided. Use the Updrafts panel to place updrafts on the map.');
     end
 
-    % Make an array with the positions of the updrafts
-    updraft_positions = zeros(length(updrafts),2);
+    % Check which updrafts the aircraft is inside of
+    updraft_indices = false(num_updrafts,1);
     for i = 1:num_updrafts
-        updraft_positions(i,1) = updrafts{i}.latitude;
-        updraft_positions(i,2) = updrafts{i}.longitude;
+        if updrafts{i}.elliptical_dist_to(lat,lon) < 3
+            updraft_indices(i) = true;
+        end
     end
 
-    % Calculate distance to each updraft (only one distance because we use the closest updraft)
-    dist_updrafts = zeros(num_updrafts,1);
+    % Restrict the updrafts to only the ones the aircraft is inside of
+    updrafts = updrafts(updraft_indices);
+    num_updrafts = length(updrafts);
+    % Get distance to each updraft
+    ell_distances = zeros(num_updrafts,1);
     for i = 1:num_updrafts
-        dist_updrafts(i) = updrafts{i}.distance_to(lat,lon);
+        ell_distances(i) = updrafts{i}.elliptical_dist_to(lat,lon);
     end
-
-    % Find the nearest updraft
-    min_dist = min(dist_updrafts);
-    indices = find(dist_updrafts == min_dist);
-    updraft_index = indices(1,1);
 
     % Round sample point heights to nearest integer
     alts = [alt_nose, alt_left, alt_right];
@@ -180,11 +179,40 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     T_out(1,1:3) = T(1,1:3); % in K
     q_out(1,1:3) = q(1,1:3); % kg water/kg moist air
 
+
+    % Compute distance-weighted average excesses among these updrafts
+
+    % Compute weights for each updraft
+    total_dist = sum(ell_distances);
+    if (num_updrafts > 1)
+        weights = 1 - (ell_distances./total_dist);
+    else
+        weights = ones(num_updrafts,1);
+    end
+
+    % Compute the weighted average
+    avg_ptemp_diff = zeros(1,3);
+    avg_humidity_diff = zeros(1,3);
+    if(~isempty(updrafts))
+        for i = 1:num_updrafts
+            if num_updrafts>3
+                disp('')
+            end
+            avg_ptemp_diff(1) = avg_ptemp_diff(1) + weights(i) * updrafts{i}.ptemp_diff(lats(1), lons(1));
+            avg_humidity_diff(1) = avg_humidity_diff(1) + weights(i) * updrafts{i}.humidity_diff(lats(1), lons(1));
+            avg_ptemp_diff(2) = avg_ptemp_diff(2) + weights(i) * updrafts{i}.ptemp_diff(lats(2), lons(2));
+            avg_humidity_diff(2) = avg_humidity_diff(2) + weights(i) * updrafts{i}.humidity_diff(lats(2), lons(2));
+            avg_ptemp_diff(3) = avg_ptemp_diff(3) + weights(i) * updrafts{i}.ptemp_diff(lats(3), lons(3));
+            avg_humidity_diff(3) = avg_humidity_diff(3) + weights(i) * updrafts{i}.humidity_diff(lats(3), lons(3));
+        end
+    end
+
+        
     % Add the updraft's potential temperature and specific humidity excess to the
     % sounding data's values
     for i = 1:3
-        T_out(i) = T_out(i) + updrafts{updraft_index}.ptemp_diff(lats(i),lons(i));
-        q_out(i) = q_out(i) + updrafts{updraft_index}.humidity_diff(lats(i),lons(i))/1000;
+        T_out(i) = T_out(i) + avg_ptemp_diff(i);
+        q_out(i) = q_out(i) + avg_humidity_diff(i)/1000;
     end
     
     % Convert the potential temperature to temperature
