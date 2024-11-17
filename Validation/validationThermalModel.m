@@ -152,36 +152,26 @@ corr_Twithout = corrcoef(temp_ascent(2:end),Twithout(2:end));
 % are shown
 
 %% Qualitative analysis
+% Colormap for plots
+color1 = [252 252 252];
+color2 = [255 165 0];
+color3 = [242 91 26];
+r = [linspace(color1(1),color2(1),128)';linspace(color2(1),color3(1),128)']./255;
+g = [linspace(color1(2),color2(2),128)';linspace(color2(2),color3(2),128)']./255;
+b = [linspace(color1(3),color2(3),128)';linspace(color2(3),color3(3),128)']./255;
+colors = [r g b];
+map = colormap(colors);
+
 close all
 sounding = sounding_buses(1);
-% Single thermal
+
+%% Single thermal
 updrafta = Updraft(49.0247,12.6251,1600); 
 updrafta.gain = 1; % Set the gain to one to remove variability
 updrafta.wind_dir = 0;
 
-% Compute vpt field
-[vpt,lat_grid,lon_grid] = compute_vpt_field(sounding,{updrafta},30);
-
-%% Create ellipse with the size of the thermal
-rx = updrafta.radius_uw; % semi-major axis (aligned with alpha)
-ry = updrafta.radius_cw; % semi-minor axis
-alpha = updrafta.wind_dir;
-
-% define an ellipse with rx, ry at the origin
-t = linspace(0,2*pi,100);
-x = rx*cos(t);
-y = ry*sin(t);
-[ylat,xlon] = ned2geodetic(x,y,0,updrafta.latitude,updrafta.longitude,0,wgs84Ellipsoid);
-
-% Plot vpt field and thermal radius
-figure
-contourf(lon_grid,lat_grid,vpt)
-hold on
-plot(xlon,ylat,'linewidth',1,'Color',[1 1 1])
-colorbar
-title('Virtual Potential Temperature (Single Thermal)')
-xlabel('Longitude')
-ylabel('Latitude')
+% Compute vpt field (single thermal)
+[vpt,lat_grid,lon_grid] = compute_vpt_field(sounding,{updrafta},300);
 
 %% Cloud street (multiple thermals in s straight line)
 % Define straight line of thermals
@@ -196,15 +186,40 @@ for i = 1:length(lons)
     updrafts{i} = updraft;
 end
 
-%% Compute vpt field
+%% Compute vpt field (cloud street)
 [vpt1,lat_grid1,lon_grid1] = compute_vpt_field(sounding,updrafts,500);
 
+%% Plot vpt field and thermal radius
+% Create ellipse with the size of the thermal
+rx = updrafta.radius_uw; % semi-major axis (aligned with alpha)
+ry = updrafta.radius_cw; % semi-minor axis
+alpha = updrafta.wind_dir;
 
-%% Plot vpt field
+% define an ellipse with rx, ry at the origin
+t = linspace(0,2*pi,100);
+x = rx*cos(t);
+y = ry*sin(t);
+[ylat,xlon] = ned2geodetic(x,y,0,updrafta.latitude,updrafta.longitude,0,wgs84Ellipsoid);
+
+f1 = figure('Renderer', 'painters', 'Position', [10 10 900 900]);
+contourf(lon_grid,lat_grid,vpt)
+hold on
+plot(xlon,ylat,'linewidth',1,'Color',[1 1 1])
+bar1 = colorbar;
+bar1.Label.String = '\theta_v [K]';
+colormap(map)
+title('Virtual Potential Temperature (Single Thermal)')
+xlabel('Longitude')
+ylabel('Latitude')
+
+
+%% Plot vpt field and radii (cloud street)
 close all
-figure
+f2 = figure('Renderer', 'painters', 'Position', [10 10 900 900]);
 contourf(lon_grid1,lat_grid1,vpt1)
-colorbar
+bar2 = colorbar;
+bar2.Label.String = '\theta_v [K]';
+colormap(map);
 title('Virtual Potential Temperature (Cloud Street)')
 xlabel('Longitude')
 ylabel('Latitude')
@@ -224,3 +239,6 @@ for i = 1:length(updrafts)
     [ylat,xlon] = ned2geodetic(xy(1,:),xy(2,:),0,updrafts{i}.latitude,updrafts{i}.longitude,0,wgs84Ellipsoid);
     plot(xlon,ylat,'linewidth',0.5,'Color',[1 1 1])
 end
+%% Save figures
+saveas(f1,'Images/Validation/Single thermal','png')
+saveas(f2,'Images/Validation/Cloud street','png')
