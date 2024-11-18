@@ -504,6 +504,10 @@ function gui()
         end
         disp('Capped soundings to the same number of levels')
 
+        % Extrapolate soundings above zi
+        for i = 1:size(reduced_soundings,2)
+            reduced_soundings(i) = extrapolate_sounding(reduced_soundings(i));
+        end
         % Assign numLevels to base workspace
         assignin("base", 'numLevels', numLevels);
 
