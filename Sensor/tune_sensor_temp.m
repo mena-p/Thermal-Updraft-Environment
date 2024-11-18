@@ -1,6 +1,6 @@
 
 % Load data
-sensorData = importSensorData('pedro_csv.csv');
+sensorData = importSensorData('Raw data/pedro_csv.csv');
 %load('Flights/29-Jul-2024_Schlautmann Nils.mat','flight');
 %load('sounding_buses.mat');
 numLevels = sounding_buses.numLevels;

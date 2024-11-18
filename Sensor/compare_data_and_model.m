@@ -5,7 +5,7 @@
 % ATTENTION: Launch the gui first and load the flight, add thermals and 
 % select a sounding! Then run the script.
 % Load data
-sensorData = importSensorData('pedro_csv.csv');
+sensorData = importSensorData('Raw data/pedro_csv.csv');
 numLevels = sounding_buses.numLevels;
 
 % convert times to duration since start

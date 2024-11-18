@@ -1,5 +1,5 @@
 % Load data
-sensorData = importSensorData('pedro_csv.csv');
+sensorData = importSensorData('Raw data/pedro_csv.csv');
 numLevels = sounding_buses.numLevels;
 
 % convert times to duration since start

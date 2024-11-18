@@ -4,7 +4,7 @@ clear
 load('sounding_buses.mat')
 sounding = sounding_buses(1);
 
-sensorData = importSensorData('pedro_csv.csv');
+sensorData = importSensorData('Raw data/pedro_csv.csv');
 %sensorData = sensorData(1:20000,:);
 %sensorData = sensorData(46151:46151+27551,:);
 % sensorData_descent = sensorData(1:19401,:);
@@ -34,8 +34,6 @@ altitude = altitude(dists < 50000);
 latitude = latitude(dists < 50000);
 longitude = longitude(dists < 50000);
 time = time(dists < 50000);
-
-
 
 %% Tune Temperature
 % Declare anonymous error function
@@ -108,6 +106,3 @@ xlabel('Humidity [%]')
 ylabel('Altitude [m]')
 title('Humidity Profile')
 legend('Sensor','Sounding','Location','southeast')
-
-% find wehre the altitude first reaches 1700m
-% idx = find(altitude == 1720);
