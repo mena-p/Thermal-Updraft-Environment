@@ -81,15 +81,15 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
 
     % Check which updrafts the aircraft is inside of
     updraft_indices = false(num_updrafts,1);
+    num_inside = 0;
     for i = 1:num_updrafts
         if updrafts{i}.elliptical_dist_to(lat,lon) < 3
             updraft_indices(i) = true;
+            num_inside = num_inside + 1;
         end
     end
 
-    % Restrict the updrafts to only the ones the aircraft is inside of
-    updrafts = updrafts(updraft_indices);
-    num_updrafts = length(updrafts);
+
     % Get distance to each updraft
     ell_distances = zeros(num_updrafts,1);
     for i = 1:num_updrafts
@@ -180,12 +180,14 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     q_out(1,1:3) = q(1,1:3); % kg water/kg moist air
 
 
-    % Compute distance-weighted average excesses among these updrafts
+    % Compute distance-weighted average excesses among the updrafts
+    ell_distances = ell_distances(updraft_indices);
 
     % Compute weights for each updraft
     total_dist = sum(ell_distances);
-    if (num_updrafts > 1)
-        weights = 1 - (ell_distances./total_dist);
+    weights = zeros(num_updrafts,1);
+    if (num_inside > 1)
+        weights(updraft_indices) = 1 - (ell_distances./total_dist);
     else
         weights = ones(num_updrafts,1);
     end
@@ -195,15 +197,14 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     avg_humidity_diff = zeros(1,3);
     if(~isempty(updrafts))
         for i = 1:num_updrafts
-            if num_updrafts>3
-                disp('')
+            if updraft_indices(i)
+                avg_ptemp_diff(1) = avg_ptemp_diff(1) + weights(i) * updrafts{i}.ptemp_diff(lats(1), lons(1));
+                avg_humidity_diff(1) = avg_humidity_diff(1) + weights(i) * updrafts{i}.humidity_diff(lats(1), lons(1));
+                avg_ptemp_diff(2) = avg_ptemp_diff(2) + weights(i) * updrafts{i}.ptemp_diff(lats(2), lons(2));
+                avg_humidity_diff(2) = avg_humidity_diff(2) + weights(i) * updrafts{i}.humidity_diff(lats(2), lons(2));
+                avg_ptemp_diff(3) = avg_ptemp_diff(3) + weights(i) * updrafts{i}.ptemp_diff(lats(3), lons(3));
+                avg_humidity_diff(3) = avg_humidity_diff(3) + weights(i) * updrafts{i}.humidity_diff(lats(3), lons(3));
             end
-            avg_ptemp_diff(1) = avg_ptemp_diff(1) + weights(i) * updrafts{i}.ptemp_diff(lats(1), lons(1));
-            avg_humidity_diff(1) = avg_humidity_diff(1) + weights(i) * updrafts{i}.humidity_diff(lats(1), lons(1));
-            avg_ptemp_diff(2) = avg_ptemp_diff(2) + weights(i) * updrafts{i}.ptemp_diff(lats(2), lons(2));
-            avg_humidity_diff(2) = avg_humidity_diff(2) + weights(i) * updrafts{i}.humidity_diff(lats(2), lons(2));
-            avg_ptemp_diff(3) = avg_ptemp_diff(3) + weights(i) * updrafts{i}.ptemp_diff(lats(3), lons(3));
-            avg_humidity_diff(3) = avg_humidity_diff(3) + weights(i) * updrafts{i}.humidity_diff(lats(3), lons(3));
         end
     end
 
