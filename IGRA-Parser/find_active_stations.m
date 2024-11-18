@@ -2,7 +2,7 @@ function active_stations = find_active_stations(flight, stations, max_dist)
     % FIND_NEARBY_STATIONS - Filter stations based on flight date and position range
     %
     %   Syntax:
-    %       stations = find_nearby_stations(flight, stations, max_dist)
+    %       stations = find_active_stations(flight, stations, max_dist)
     %
     %   Input Arguments:
     %       - flight: Structure containing flight information, including the flight date and trajectory.

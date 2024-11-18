@@ -24,7 +24,7 @@ RH = timetable(times, sensorData.humidity);
 
 %% Extract results
 
-% Extrac model results
+% Extract model results
 
 temps = out.yout{1}.Values.Data;
 RHs = out.yout{2}.Values.Data;
@@ -64,7 +64,7 @@ plot(adiabat',i')
 hold on
 plot(model',i')
 
-%% Other plots
+%% Find surge locations
 
 % Find all simtimes where alts is about zi (+-10m)
 zi = 2004;
@@ -72,6 +72,9 @@ idx = find(alts > zi - 10 & alts < zi + 10);
 
 % Remove indices that are too close to each other, leaving only one
 idx = idx([true; diff(idx) > 10]);
+
+% Note: manual adjustment of the idx vector is needed to remove some
+% entries
 
 %% Plot real and simulated values
 
