@@ -1,5 +1,5 @@
 function updateData(y,time,sigNum)
-
+% This function updates the plots on the simulation tab of the GUI
     % Get GUI handle
     gui = findobj(allchild(0),'Tag','GUI');
 
