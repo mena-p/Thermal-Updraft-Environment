@@ -1,8 +1,8 @@
 function [flight,name] = parse_igc_file(filepath)
-%PARSE_IGC_F Parses an IGC file and extracts metadata and trajectory.
+% Parses an IGC file and extracts metadata and trajectory.
 %   Detailed explanation goes here
-% Open the igc file
 
+% Open the igc file
 disp('Parsing IGC file. Please wait...')
 fid = fopen(filepath);
 flag = 1;
