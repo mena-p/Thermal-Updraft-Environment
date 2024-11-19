@@ -1,5 +1,9 @@
 function updateData(y,time,sigNum)
 % This function updates the plots on the simulation tab of the GUI
+% Logging for the needed signals must be turned on in Simulink, and the
+% option to make them accessible during the simulation must be checked.
+% Ensure that the sigNum is set correctly in Simulink according to the
+% comments below, and that the callback function is set to updateData.
     % Get GUI handle
     gui = findobj(allchild(0),'Tag','GUI');
 
@@ -50,7 +54,7 @@ function updateData(y,time,sigNum)
         drawnow;
         end
 
-    elseif sigNum == 2 % y = velocity
+    elseif sigNum == 2 % y = NED velocity
         % Get airspeed and climb plots
         airspeed = findobj(allchild(gui), 'Tag', 'airspeed');
         climb = findobj(allchild(gui), 'Tag', 'climb');
