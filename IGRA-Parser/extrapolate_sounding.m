@@ -1,5 +1,5 @@
 function sounding_out = extrapolate_sounding(sounding)
-    % This function extrapolates the temperature of the sounfing data
+    % This function extrapolates the temperature of the sounding
     % above the mixed layer height zi, using the dry-adiabatic lapse rate.
 
     % Get the mixed layer height
