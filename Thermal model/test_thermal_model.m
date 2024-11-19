@@ -1,7 +1,7 @@
 % This script tests the thermal_model function in a loop
 
 % ATTENTION: Set up a simulation with the GUI first, choosing a flight,
-% sounding and updrafts.
+% sounding and updrafts. Run the script from the root directory.
 gui()
 
 %% Run after setting up with the GUI
