@@ -6,9 +6,9 @@ function purge_cache()
     end
 
     % Reset the lastUpdate field of all stations
-    load("stations.mat");
+    load("IGRA-Parser/stations.mat","stations");
     stations.lastUpdate(1:end) = datetime('01.01.0000','TimeZone','UTC');
 
     % Save the updated stations
-    save('stations.mat','stations')
+    save('IGRA-Parser/stations.mat','stations')
 end
