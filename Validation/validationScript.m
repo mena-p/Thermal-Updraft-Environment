@@ -1,7 +1,7 @@
 close all
 clear
 % Load data
-sensorData = importSensorData('pedro_csv.csv');
+sensorData = importSensorData('Raw data/pedro_csv.csv');
 load("sounding_buses.mat","sounding_buses");
 sounding = sounding_buses(1);
 load('Flights/29-Jul-2024_Schlautmann Nils.mat')
