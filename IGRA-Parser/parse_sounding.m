@@ -110,7 +110,7 @@ while ischar(headerLine)
         % numerical values, denoted by -9999. These are found and 
         % replaced by NaN.
 
-        data = igra_to_table(filename, lineCounter+1,...
+        data = sounding_to_table(filename, lineCounter+1,...
             lineCounter+sounding.numLevels);
         sounding.data = data;
 
