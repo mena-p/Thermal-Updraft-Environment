@@ -1,6 +1,10 @@
-% test_thermal_model.m
 % This script tests the thermal_model function in a loop
 
+% ATTENTION: Set up a simulation with the GUI first, choosing a flight,
+% sounding and updrafts.
+gui()
+
+%% Run after setting up with the GUI
 % Extract lat, lon, and alt from the flight.trajectory timeseries
 lat = flight.trajectory.lat.lat;
 lon = flight.trajectory.lon.lon;
