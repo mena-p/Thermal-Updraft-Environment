@@ -14,13 +14,11 @@ d_Childress = z_i * 0.4 .* z_norm.^(1/3) .* (1 - 0.5 * z_norm) + ...
     z .* (1 / pi) .* (z_norm - 0.6) .* z_norm;
 d_Childress_norm = d_Childress/z_i;
 
-% Plotting the results
+% Plot
 figure;
 hold on;
 plot(d_Lenschow_norm, z_norm,'Color','[0 0 0]','LineStyle','-');
 plot(d_Childress_norm, z_norm,'Color','[0 0 0]','LineStyle','--');
-
-% Configure the plot
 xlabel('d/z_i [-]');
 ylabel('z/z_i [-]');
 title('Lenschow/Allen and Childress Outer Diameter');
