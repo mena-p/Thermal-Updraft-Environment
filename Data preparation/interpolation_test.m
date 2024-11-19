@@ -1,8 +1,8 @@
-% This script tests out ways of extrapolating the linear profile of
-% potential temperature into 2D space. The first method is to manually average the
+% This script tests out ways of extrapolating the 1D profile of
+% the thermal into 2D space. The first method is to manually average the
 % two profiles based on the angle the gliders makes with the updraft.
 % The second method is to use the griddata function to interpolate 
-% the values of potential temperature at any point in the updraft.Linear,
+% the values of potential temperature at any point in the updraft. Linear,
 % quadratic, cubic, natural... interpolation were tested. Plots
 % are generated for the thesis
 
@@ -78,7 +78,7 @@ title('Potential Temperature Difference')
 a = colorbar;
 a.Label.String  = '\Delta\theta [K]';
 colormap(map);
-saveas(gcf,'Images/thermal_ptemp_2d','png')
+%saveas(gcf,'Images/thermal_ptemp_2d','png')
 
 % Plot the humidity difference in the grid
 figure
@@ -92,7 +92,7 @@ title('Specific Humidity Difference')
 b = colorbar;
 b.Label.String = '\Deltaq [g/kg]';
 colormap("sky");
-saveas(gcf,'Images/thermal_hum_2d','png')
+%saveas(gcf,'Images/thermal_hum_2d','png')
 
 % Plot the ramp in the grid
 figure
@@ -106,7 +106,7 @@ title('Scaling Function')
 d = colorbar;
 d.Label.String  = 'Scaling Factor [-]';
 colormap("gray")
-saveas(gcf,'Images/thermal_scaling_function_2d','png')
+%saveas(gcf,'Images/thermal_scaling_function_2d','png')
 
 
 
