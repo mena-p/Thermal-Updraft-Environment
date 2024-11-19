@@ -1,3 +1,6 @@
+% This script was used to tune the sensor parameters. It requires the
+% Global Optimization Toolbox.
+
 close all
 clear
 % Load data
