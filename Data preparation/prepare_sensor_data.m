@@ -3,7 +3,8 @@
 % when you want to run it using data collected in flight. The data should
 % be provided in the same format as the file 'pedro_csv.csv' created by 
 % Leo. You should still do the setup process as usual on the GUI, and then 
-% run this script.
+% run this script. Don't forget to choose the correct variant for the
+% sensor model.
 
 % Load data
 sensorData = importSensorData('Raw data/pedro_csv.csv');
