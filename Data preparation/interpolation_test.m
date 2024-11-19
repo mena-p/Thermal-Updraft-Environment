@@ -78,7 +78,7 @@ title('Potential Temperature Difference')
 a = colorbar;
 a.Label.String  = '\Delta\theta [K]';
 colormap(map);
-%saveas(gcf,'Images/thermal_ptemp_2d','png')
+%saveas(gcf,'Images/Thermal model/thermal_ptemp_2d','png')
 
 % Plot the humidity difference in the grid
 figure
@@ -92,7 +92,7 @@ title('Specific Humidity Difference')
 b = colorbar;
 b.Label.String = '\Deltaq [g/kg]';
 colormap("sky");
-%saveas(gcf,'Images/thermal_hum_2d','png')
+%saveas(gcf,'Images/Thermal model/thermal_hum_2d','png')
 
 % Plot the ramp in the grid
 figure
@@ -106,7 +106,7 @@ title('Scaling Function')
 d = colorbar;
 d.Label.String  = 'Scaling Factor [-]';
 colormap("gray")
-%saveas(gcf,'Images/thermal_scaling_function_2d','png')
+%saveas(gcf,'Images/Thermal model/thermal_scaling_function_2d','png')
 
 
 
