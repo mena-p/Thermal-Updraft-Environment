@@ -9,7 +9,7 @@ function sensor_data = importSensorData(filename, dataLines)
 %  for dis-contiguous row intervals.
 %
 %  Example:
-%  importSensorData = importfile("Raw data\pedro_csv.csv", [2, Inf]);
+%  sensor_data = importSensorData("Raw data\pedro_csv.csv", [2, Inf]);
 %
 %  See also READTABLE.
 %
