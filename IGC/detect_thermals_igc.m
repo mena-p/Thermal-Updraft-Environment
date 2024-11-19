@@ -79,8 +79,12 @@ function [Thermal_positions] = detect_thermals_igc(trajectory)
             end
         end
     end
-    % Corvert the thermal positions to latitude and longitude coordinates
-    [Thermal_positions(:,1), Thermal_positions(:,2), ~] = ned2geodetic(thermal_positions(:,1), thermal_positions(:,2), thermal_positions(:,3), lat(1), lon(1), alt(1), wgs84);
-    % Convert the circle positions to latitude and longitude coordinates
-    [positions(:,1), positions(:,2), positions(:,3)] = ned2geodetic(positions(:,1), positions(:,2), positions(:,3), lat(1), lon(1), alt(1), wgs84);  
+    if isempty(thermal_positions)
+        Thermal_positions = [];
+    else
+        % Corvert the thermal positions to latitude and longitude coordinates
+        [Thermal_positions(:,1), Thermal_positions(:,2), ~] = ned2geodetic(thermal_positions(:,1), thermal_positions(:,2), thermal_positions(:,3), lat(1), lon(1), alt(1), wgs84);
+        % Convert the circle positions to latitude and longitude coordinates
+        [positions(:,1), positions(:,2), positions(:,3)] = ned2geodetic(positions(:,1), positions(:,2), positions(:,3), lat(1), lon(1), alt(1), wgs84);  
+    end
 end
