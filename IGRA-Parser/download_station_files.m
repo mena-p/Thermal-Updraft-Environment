@@ -23,11 +23,11 @@ function download_station_files(stationList)
         else
             update_station_cache(station.ID);
         end
-        % Update lastUpdate in station.mat file
-        load("IGRA-Parser/stations.mat");
+        % Update lastUpdate in station.mat file (date of last download)
+        load("IGRA-Parser/stations.mat","stations");
         stations.lastUpdate(stations.ID == station.ID) = datetime('now','TimeZone','UTC');
         save("IGRA-Parser\stations.mat","stations");
-        fprintf('Registered update in stations.mat\n\n');
+        fprintf('Registered download in stations.mat\n\n');
     end
     fprintf('Finished downloading station files and updating cache.\n\n');
 end
