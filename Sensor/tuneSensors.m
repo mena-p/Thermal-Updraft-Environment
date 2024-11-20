@@ -3,6 +3,7 @@
 
 close all
 clear
+
 % Load data
 load('sounding_buses.mat')
 sounding = sounding_buses(1);
@@ -15,7 +16,7 @@ altitude = sensorData.gps_altitude;
 latitude = sensorData.gps_y/111000;
 longitude = sensorData.gps_x/111000;
 time = sensorData.time;
-%% Prepare data for SensorTuner model
+%% Prepare data for tuning
 % convert times to duration since start
 times = sensorData.time - sensorData.time(1);
 times.Format = 's';
@@ -39,12 +40,10 @@ longitude = longitude(dists < 50000);
 time = time(dists < 50000);
 
 %% Tune Temperature
-% Declare anonymous error function
-fun = @(x) avg_error_temp(x(1),x(2),x(3),sensorData,sounding_buses);
 
 % Create global optim problem
 problem = createOptimProblem('fmincon','objective',...
-    @(x) avg_error_temp(x(1),x(2),x(3),sensorData,sounding_buses), 'x0',[200,0.5,5],...
+    @(x) avg_error_temp(x(1),x(2),x(3),sensorData,sounding), 'x0',[200,0.5,5],...
     'lb',[1,0,3],'ub',[1000,1,10],...
     'options', optimoptions(@fmincon,'Algorithm','sqp','Display','off'));
 
@@ -54,10 +53,9 @@ rng(14,'twister')
 [parameters_temp,temp_avg_error] = run(gs,problem);
 
 %% Tune Humidity
-fun = @(x) avg_error_hum(x(1),sensorData,sounding_buses);
 
 problem = createOptimProblem('fmincon','objective',...
-    @(x) avg_error_hum(x(1),sensorData,sounding_buses), 'x0',-16,...
+    @(x) avg_error_hum(x(1),sensorData,sounding), 'x0',-16,...
     'lb',-50,'ub',0,'options',...
     optimoptions(@fmincon,'Algorithm','sqp','Display','off'));
 
@@ -66,10 +64,9 @@ rng(14,'twister')
 [hum_sensor_const,hum_avg_error] = run(gs,problem);
 
 %% Tune Pressure
-fun = @(x) avg_error_press(x(1),x(2),sensorData,sounding_buses);
 
 problem = createOptimProblem('fmincon','objective',...
-    @(x) avg_error_press(x(1),x(2),sensorData,sounding_buses), 'x0',[7,0],...
+    @(x) avg_error_press(x(1),x(2),sensorData,sounding), 'x0',[7,0],...
     'lb',[0,0],'ub',[300,1],'options',...
     optimoptions(@fmincon,'Algorithm','sqp','Display','off'));
 
