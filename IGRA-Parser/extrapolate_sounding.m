@@ -11,7 +11,7 @@ function sounding_out = extrapolate_sounding(sounding)
         return
     end
     % Get the temperature profile
-    T = sounding.derived.TEMP;
+    T = sounding.derived.PTEMP;
 
     % Check the maximum height of the sounding
     max_height = max(sounding.derived.REPGPH);
