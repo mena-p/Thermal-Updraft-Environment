@@ -13,6 +13,9 @@
 # Saved variables
 *.mat
 !sounding_bus.mat
+!simulation_out_sensor_model.mat
+!updrafts_full_validation.mat
+!cloud_street_updrafts.mat
 IGRA-Parser/stations.mat
 
 # Windows default autosave extension
