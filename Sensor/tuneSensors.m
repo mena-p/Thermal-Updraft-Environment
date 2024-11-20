@@ -51,7 +51,7 @@ problem = createOptimProblem('fmincon','objective',...
 % Solve
 gs = GlobalSearch('Display','iter');
 rng(14,'twister')
-[parameters_temp,avg_error_temp] = run(gs,problem);
+[parameters_temp,temp_avg_error] = run(gs,problem);
 
 %% Tune Humidity
 fun = @(x) avg_error_hum(x(1),sensorData,sounding_buses);
