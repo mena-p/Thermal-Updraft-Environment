@@ -1,12 +1,12 @@
 %% Thermal model validation
 % The thermal + (temperature and humidity) sensor models are run twice for 
-% a sections of the flight where the glider encountered a thermal. 
+% a section of the flight where the glider encountered a thermal. 
 % One simulation has a virtual
 % thermal placed at the location of the real thermal, and the other does
 % not. The correlations of temperature and humidity between both runs and
 % the actual measured values are compared. The simulations with the
 % thermal has a larger corelation. This script test the 4 thermals closest
-% to the sounding station. To choose which thermal should be testes,
+% to the sounding station. To choose which thermal should be tested,
 % uncomment the lines defining the ascent (%% Choose ascent) and the
 % corresponding updraft (%% Initialize updraft). Your
 % results might vary slightly due to the randomness added to the thermal
@@ -26,7 +26,6 @@ temperature = sensorData.temperature;
 altitude = sensorData.gps_altitude;
 
 %% Choose ascent
-descent = 46151:1:46151+19401;
  ascent = 46151+19401:1:46151+27551; % Ascent 1
 % ascent = 11500:1:19500; % Ascent 2
 % ascent = 37000:1:46500; % Ascent 3
@@ -171,7 +170,7 @@ updrafta.gain = 1; % Set the gain to one to remove variability
 updrafta.wind_dir = 0;
 
 % Compute vpt field (single thermal)
-[vpt,lat_grid,lon_grid] = compute_vpt_field(sounding,{updrafta},300);
+[vpt,lat_grid,lon_grid] = compute_vpt_field(sounding,{updrafta},50);
 
 %% Cloud street (multiple thermals in s straight line)
 % Define straight line of thermals
@@ -187,7 +186,7 @@ for i = 1:length(lons)
 end
 
 %% Compute vpt field (cloud street)
-[vpt1,lat_grid1,lon_grid1] = compute_vpt_field(sounding,updrafts,500);
+[vpt1,lat_grid1,lon_grid1] = compute_vpt_field(sounding,updrafts,50);
 
 %% Plot vpt field and thermal radius
 % Create ellipse with the size of the thermal
@@ -240,5 +239,5 @@ for i = 1:length(updrafts)
     plot(xlon,ylat,'linewidth',0.5,'Color',[1 1 1])
 end
 %% Save figures
-saveas(f1,'Images/Validation/Single thermal','png')
-saveas(f2,'Images/Validation/Cloud street','png')
+%saveas(f1,'Images/Validation/Single thermal','png')
+%saveas(f2,'Images/Validation/Cloud street','png')
