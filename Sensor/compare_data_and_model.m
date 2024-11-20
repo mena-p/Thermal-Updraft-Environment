@@ -1,9 +1,7 @@
-% This script prepares data for the Sensor Tuner model,
-% which was used to test different sensor models and to 
+% This script was used to test different sensor models and to 
 % compare the flight test data with the thermal model data.
-%% Setup
-% ATTENTION: Launch the gui first and load the flight, add thermals and 
-% select a sounding! Then run the script.
+%% Load data
+
 load("sounding_buses.mat","sounding_buses");
 sounding_buses = sounding_buses(1);
 load("updrafts_full_validation.mat","updrafts")
@@ -13,7 +11,6 @@ load('29-Jul-2024_Schlautmann Nils.mat')
 rmpath 'C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Thermal-Updraft-Model\Flights'
 numLevels = sounding_buses.numLevels;
 
-%% Load data
 sensorData = importSensorData('Raw data/pedro_csv.csv');
 numLevels = sounding_buses.numLevels;
 
