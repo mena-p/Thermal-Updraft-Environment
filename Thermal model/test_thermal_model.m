@@ -17,7 +17,6 @@ num_iterations = length(lat);
 for i = 1:num_iterations
     [T, q, p,RH] = updraft_model(lat(i), lon(i), alt(i), [pi/4,0,0], sounding_buses, updrafts);
     fprintf('Iteration %d: alt = %f, C = %f, L = %f, R = %f\n', i, alt(i), T(1),T(2),T(3));
-    %fprintf('Iteration %d: alt = %f, w1 = %f, w2 = %f, sum = %f\n', i, alt(i), w(1), w(2), w(1)+w(2))
 end
 
 function [T, q, p,RH] = updraft_model(lat, lon, alt, euler_angles, sounding_buses, updrafts)
