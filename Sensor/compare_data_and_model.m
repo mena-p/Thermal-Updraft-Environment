@@ -4,7 +4,16 @@
 %% Setup
 % ATTENTION: Launch the gui first and load the flight, add thermals and 
 % select a sounding! Then run the script.
-% Load data
+load("sounding_buses.mat","sounding_buses");
+sounding_buses = sounding_buses(1);
+load("updrafts_full_validation.mat","updrafts")
+load("Processed data/sounding_bus.mat",'sounding')
+addpath 'C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Thermal-Updraft-Model\Flights'
+load('29-Jul-2024_Schlautmann Nils.mat')
+rmpath 'C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Thermal-Updraft-Model\Flights'
+numLevels = sounding_buses.numLevels;
+
+%% Load data
 sensorData = importSensorData('Raw data/pedro_csv.csv');
 numLevels = sounding_buses.numLevels;
 
@@ -25,19 +34,18 @@ RH = timetable(times, sensorData.humidity);
 %% Extract results
 
 % Extract model results
-
 temps = out.yout{1}.Values.Data;
 RHs = out.yout{2}.Values.Data;
 ps = out.yout{3}.Values.Data;
 simalts = out.yout{4}.Values.Data;
 simtimes = out.tout;
 
-realT = temps(:,1);
-modelT = temps(:,2);
-realRH = RHs(:,1);
-modelRH = RHs(:,2);
-realp = ps(:,1);
-modelp = ps(:,2);
+realT = squeeze(temps(1,1,:));
+modelT = squeeze(temps(1,2,:));
+realRH = squeeze(RHs(1,1,:));
+modelRH = squeeze(RHs(1,2,:));
+realp = squeeze(ps(1,1,:));
+modelp = squeeze(ps(1,2,:));
 alts = simalts;
 
 %% Plot altitudes
@@ -47,22 +55,6 @@ legend('sim')
 hold on
 plot(flight.trajectory.alt.alt(896:end))
 legend('igc')
-
-%% Compare dry-adiabat and thermal model temps
-adiabat = zeros(2500,1);
-model = zeros(2500,1);
-for i = 1:1:2500
-    height = i + 419;
-    adiabat(i) = 295.3147 - 9.8 * (height - 385)/1000;
-    [Tout, ~,~,~] = thermal_model(0, 0, height, [0 0 0], updrafts, sounding_buses);
-    model(i) = Tout(1);
-end
-%%
-i = 1:1:2500;
-figure
-plot(adiabat',i')
-hold on
-plot(model',i')
 
 %% Find surge locations
 
@@ -74,10 +66,11 @@ idx = find(alts > zi - 10 & alts < zi + 10);
 idx = idx([true; diff(idx) > 10]);
 
 % Note: manual adjustment of the idx vector is needed to remove some
-% entries
+% entries, the indices used in the thesis are saved to zi_indices.mat
+load("zi_indices.mat")
 
 %% Plot real and simulated values
-
+close all
 figure('Position', [10 10 900 300])
 plot(simtimes, realT,"Color","b")
 hold on
@@ -86,7 +79,7 @@ legend('Flight Test', 'Simulation',"Location","northwest")
 xlabel('Flight Time [s]')
 ylabel("Temperature [K]")
 xlim([0 12183])
-xline(idx, '--','HandleVisibility','off')
+%xline(idx, '--','HandleVisibility','off')
 grid on
 %saveas(gcf,"Images/Sensor/comparison-temp",'png')
 
@@ -98,7 +91,7 @@ legend('Flight Test', 'Simulation',"Location","southeast")
 xlabel('Flight Time [s]')
 ylabel("Relative Humidity [%]")
 xlim([0 12183])
-xline(idx, '--','HandleVisibility','off')
+%xline(idx, '--','HandleVisibility','off')
 grid on
 %saveas(gcf,"Images/Sensor/comparison-hum",'png')
 
@@ -123,7 +116,7 @@ xlabel('Filght Time [s]')
 ylabel("Altitude [m]")
 xlim([0 12183])
 hold on
-xline(idx, '--','HandleVisibility','off')
+%xline(idx, '--','HandleVisibility','off')
 %saveas(gcf,"Images/Sensor/comparison-alt",'png')
 
 %% Plots expaining spikes
