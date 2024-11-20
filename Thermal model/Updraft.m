@@ -16,7 +16,7 @@ classdef Updraft
         function obj = Updraft(lat, lon, zi)
             obj.latitude = lat;
             obj.longitude = lon;
-            obj.gain = max(0.25,1+randn(1));
+            obj.gain = max(0.5,1+randn(1));
             obj.timeSinceFormation = 0;
             obj.wind_dir = rand(1)*360;
             obj.coeff_uw = Updraft.load_coeff_uw();
