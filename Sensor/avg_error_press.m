@@ -22,9 +22,12 @@ function error = avg_error_press(b,d,sensorData,sounding_buses)
             warning on backtrace
             return;
         end
-        p = sounding_buses.PRESS(logical_mask)/100;
-        p = p(1,1) + b + d * v_squared;
-        measured_p = sensorData.pressure(i);
+        p = sounding_buses.PRESS(logical_mask)/1000; % kPa
+        T = sounding_buses.TEMP(logical_mask); % K
+        measured_p = sensorData.pressure(i); % hPa
+        rho = p/(0.2870*T); % kg/m^3
+        p = p*10; % hPa
+        p = p(1,1) + b + d * rho * v_squared;
         err(i) = (p - measured_p)^2;
     end
     error = sum(err)/n;

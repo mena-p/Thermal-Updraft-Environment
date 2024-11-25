@@ -16,6 +16,16 @@ altitude = sensorData.gps_altitude;
 latitude = sensorData.gps_y/111000;
 longitude = sensorData.gps_x/111000;
 time = sensorData.time;
+
+% Fix Leo velocity
+diffX = diff(sensorData.gps_x)./0.02;
+diffY = diff(sensorData.gps_y)./0.02;
+diffH = diff(sensorData.gps_altitude)./0.02;
+vel = zeros(size(sensorData.velocity));
+vel(2:end) = sqrt(diffX.^2 + diffY.^2 + diffH.^2);
+vel(1) = vel(2);
+sensorData.velocity = vel;
+
 %% Prepare data for tuning
 % convert times to duration since start
 times = sensorData.time - sensorData.time(1);
@@ -98,9 +108,9 @@ legend('Trajectory','Station')
 
 % Plot the humidity profiles
 figure
-plot(profile, altitude_bins,'Color','b')
+plot(profile, altitude_bins)
 hold on
-plot(sounding.REPRH(750:1320),sounding.REPGPH(750:1320),"Color","#0072BD")
+plot(sounding.REPRH(750:1320),sounding.REPGPH(750:1320))
 grid on
 xlabel('Humidity [%]')
 ylabel('Altitude [m]')
