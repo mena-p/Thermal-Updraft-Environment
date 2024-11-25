@@ -11,7 +11,7 @@
 *.txt
 
 # Saved variables
-*.mat
+#*.mat
 !sounding_bus.mat
 !simulation_out_sensor_model.mat
 !updrafts_full_validation.mat
