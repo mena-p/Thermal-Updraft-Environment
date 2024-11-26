@@ -8,13 +8,13 @@ close all
 clear
 % Load data
 sensorData = importSensorData('Raw data/pedro_csv.csv');
-load("sounding_buses.mat","sounding_buses");
+load("sounding_buses_tuning.mat","sounding_buses");
 sounding_buses = sounding_buses(1);
 load("updrafts_full_validation.mat","updrafts")
 load("Processed data/sounding_bus.mat",'sounding')
-addpath 'C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Thermal-Updraft-Model\Flights'
+addpath '..'/Flights/
 load('29-Jul-2024_Schlautmann Nils.mat')
-rmpath 'C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Thermal-Updraft-Model\Flights'
+rmpath '..'/Flights/
 numLevels = sounding_buses.numLevels;
 
 % convert times to duration since start
@@ -22,9 +22,7 @@ times = sensorData.time - sensorData.time(1);
 times.Format = 's';
 
 latitude = sensorData.gps_y/111000;
-latitude = latitude(1:50:609101);
 longitude = sensorData.gps_x/111000;
-longitude = longitude(1:50:609101);
 
 % Create timetables
 alt = timetable(times, sensorData.gps_altitude);
@@ -37,6 +35,64 @@ vel_squared = timetable(times, sensorData.velocity.^2);
 
 % Convert times to double
 times = seconds(times);
+
+%% Compute substitute humidity profile
+close all
+diffH = diff(sensorData.gps_altitude)./0.02;
+dists = distance(latitude,longitude,sounding_buses.lat,sounding_buses.lon,wgs84Ellipsoid('m'));
+[profile, altitude_bins] = get_humidity_profile(sensorData(dists(1:end-1)>50000,:));
+
+% Compare humidities
+n = size(sensorData.humidity,1);
+pred_rh = zeros(n,1);
+for i =1:n
+    idx = int32(sensorData.gps_altitude(i));
+    if idx > size(profile,2)
+        continue
+    end
+    pred_rh(i) = profile(idx);
+end
+
+m = size(sounding_buses.REPGPH,1);
+new_profile = zeros(m,1);
+for i =1:m
+    idx = int32(sounding_buses.REPGPH(i));
+    if idx > size(profile,2)
+        continue
+    end
+    new_profile(i) = profile(idx);
+end
+
+% Convert RH to vapor pressure
+T = sounding_buses.PTEMP.* (100000./sounding_buses.PRESS).^(-0.286);
+T = T - 273.15;
+f = 1.0007 + 3.46*10^(-6) .* sounding_buses.PRESS/100;
+exponent = (((18.729-T)./227.3).*T)./(T+257.87);
+esat = f .* 6.1121 .* exp(exponent); % hPa
+e = new_profile .* esat; % Pa
+%e(isnan(e)) = sounding_buses.VAPPRESS(isnan(e));
+%e(e==0) = sounding_buses.VAPPRESS(e==0);
+
+
+figure
+plot(e)
+hold on
+plot(sounding_buses.VAPPRESS)
+legend('based on profile', 'sounding')
+sounding_buses.VAPPRESS = e;
+
+figure
+subplot(2,1,1)
+plot(sensorData.time,pred_rh)
+hold on
+plot(sensorData.time,sensorData.humidity)
+legend('based on profile', 'actual')
+subplot(2,1,2)
+plot(sensorData.time,sensorData.gps_altitude);
+
+figure
+mask = diffH < -3 & dists(1:end-1) < 50000;
+scatter(sensorData.humidity(mask),sensorData.gps_altitude(mask))
 
 %% Run the SensorTuner.slx model
 % Run the sensor tuner model with the
