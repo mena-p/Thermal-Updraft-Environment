@@ -5,7 +5,8 @@ close all
 clear
 
 % Load data
-load('sounding_buses.mat')
+load('sounding_buses_tuning.mat') % the ptemp is extrapolated above zi 
+% in this sounding, just like it is in the actual simulation environment
 sounding = sounding_buses(1);
 
 sensorData = importSensorData('Raw data/pedro_csv.csv');
@@ -40,7 +41,6 @@ RH = timetable(times, sensorData.humidity);
 %% Cut data to 50km from sounding to tune
 % find indices where the wsg84 distance to the sounding station is less than 50km
 dists = distance(latitude,longitude,sounding.lat,sounding.lon,wgs84Ellipsoid('m'));
-dist_idx = find(dists < 50000);
 
 % Restrict all data to the part where the distance is less than 50km
 sensorData = sensorData(dists < 50000,:);
@@ -48,6 +48,7 @@ altitude = altitude(dists < 50000);
 latitude = latitude(dists < 50000);
 longitude = longitude(dists < 50000);
 time = time(dists < 50000);
+diffH = diffH(dists < 50000);
 
 %% Tune Temperature
 
