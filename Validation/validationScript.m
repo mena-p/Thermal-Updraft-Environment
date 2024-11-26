@@ -40,8 +40,8 @@ times = seconds(times);
 close all
 diffH = diff(sensorData.gps_altitude)./0.02;
 dists = distance(latitude,longitude,sounding_buses.lat,sounding_buses.lon,wgs84Ellipsoid('m'));
-[profile, altitude_bins] = get_humidity_profile(sensorData(dists(1:end-1)<50000,:));
-[profile2, altitude_bins2] = get_humidity_profile(sensorData(dists(1:end-1)>50000 & dists(1:end-1)<100000,:));
+[profile, altitude_bins] = get_humidity_profile(sensorData(dists(1:end-1)<50000 & diffH<0,:));
+[profile2, altitude_bins2] = get_humidity_profile(sensorData(dists(1:end-1)>50000 & dists(1:end-1)<100000 & diffH<0,:));
 
 figure
 plot(profile, altitude_bins)
