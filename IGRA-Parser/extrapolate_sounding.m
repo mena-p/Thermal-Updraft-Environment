@@ -43,10 +43,10 @@ function sounding_out = extrapolate_sounding(sounding)
     T_extrapolated = [T_below_zi; T_above_zi];
 
     % Update the temperature profile
-    sounding.derived.TEMP = T_extrapolated;
+    sounding.derived.TEMP = T_extrapolated; % 10*K
     
     % Update potential temperature profile
-    sounding.derived.PTEMP = T_extrapolated .* (100000./sounding.derived.PRESS).^(0.286);
+    sounding.derived.PTEMP = T_extrapolated .* (100000./sounding.derived.PRESS).^(0.286); % 10*K
 
     % Return the updated sounding
     sounding_out = sounding;
