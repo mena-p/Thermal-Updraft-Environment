@@ -1,7 +1,7 @@
 % This script was used to validate the full simulation environment. If you
 % want to verify the validation, run every section and the sensor tuner
 % model (follow the instructions in the comments). Or you can skip
-% the first and second sections by uncommenting the load command on line 48
+% the first and second sections by uncommenting the load command on line 46
 % and running from there.
 
 close all
@@ -35,73 +35,6 @@ vel_squared = timetable(times, sensorData.velocity.^2);
 
 % Convert times to double
 times = seconds(times);
-
-%% Compute substitute humidity profile
-close all
-diffH = diff(sensorData.gps_altitude)./0.02;
-dists = distance(latitude,longitude,sounding_buses.lat,sounding_buses.lon,wgs84Ellipsoid('m'));
-[profile, altitude_bins] = get_humidity_profile(sensorData(dists(1:end-1)<50000 & diffH<0,:));
-[profile2, altitude_bins2] = get_humidity_profile(sensorData(dists(1:end-1)>50000 & dists(1:end-1)<100000 & diffH<0,:));
-
-figure
-plot(profile, altitude_bins)
-hold on
-plot(profile2, altitude_bins2)
-xlabel('Humidity (%)')
-ylabel('Altitude (m)')
-title('Humidity Profile')
-
-% Compare humidities
-n = size(sensorData.humidity,1);
-pred_rh = zeros(n,1);
-for i =1:n
-    idx = int32(sensorData.gps_altitude(i));
-    if idx > size(profile,2)
-        continue
-    end
-    pred_rh(i) = profile(idx);
-end
-
-m = size(sounding_buses.REPGPH,1);
-new_profile = zeros(m,1);
-for i =1:m
-    idx = int32(sounding_buses.REPGPH(i));
-    if idx > size(profile,2)
-        continue
-    end
-    new_profile(i) = profile(idx);
-end
-
-% Convert RH to vapor pressure
-T = sounding_buses.PTEMP.* (100000./sounding_buses.PRESS).^(-0.286);
-T = T - 273.15;
-f = 1.0007 + 3.46*10^(-6) .* sounding_buses.PRESS/100;
-exponent = (((18.729-T)./227.3).*T)./(T+257.87);
-esat = f .* 6.1121 .* exp(exponent); % hPa
-e = new_profile .* esat; % Pa
-%e(isnan(e)) = sounding_buses.VAPPRESS(isnan(e));
-%e(e==0) = sounding_buses.VAPPRESS(e==0);
-
-
-figure
-plot(e)
-hold on
-plot(sounding_buses.VAPPRESS)
-legend('based on profile', 'sounding')
-sounding_buses.VAPPRESS = e;
-
-figure
-subplot(2,1,1)
-plot(sensorData.time,pred_rh)
-hold on
-plot(sensorData.time,sensorData.humidity)
-legend('based on profile', 'actual')
-subplot(2,1,2)
-plot(sensorData.time,sensorData.gps_altitude);
-
-figure
-mask = diffH < -3 & dists(1:end-1) < 50000;
-scatter(sensorData.humidity(mask),sensorData.gps_altitude(mask))
 
 %% Run the SensorTuner.slx model
 % Run the sensor tuner model with the
