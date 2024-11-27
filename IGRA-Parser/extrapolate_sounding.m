@@ -11,7 +11,7 @@ function sounding_out = extrapolate_sounding(sounding)
         return
     end
     % Get the temperature profile
-    T = sounding.derived.PTEMP;
+    T = sounding.derived.TEMP;
 
     % Check the maximum height of the sounding
     max_height = max(sounding.derived.REPGPH);
@@ -37,7 +37,7 @@ function sounding_out = extrapolate_sounding(sounding)
     GPH_above_zi = sounding.derived.REPGPH(sounding.derived.REPGPH > zi);
 
     % Calculate the temperature above zi using the dry-adiabatic lapse rate
-    T_above_zi = Tzi - 9.8*(GPH_above_zi - GPHzi)/1000;
+    T_above_zi = Tzi - 98*(GPH_above_zi - GPHzi)/1000; % unit is 10*K like in sounding.
 
     % Concatenate the temperatures
     T_extrapolated = [T_below_zi; T_above_zi];
@@ -45,6 +45,9 @@ function sounding_out = extrapolate_sounding(sounding)
     % Update the temperature profile
     sounding.derived.TEMP = T_extrapolated;
     
+    % Update potential temperature profile
+    sounding.derived.PTEMP = T_extrapolated .* (100000./sounding.derived.PRESS).^(0.286);
+
     % Return the updated sounding
     sounding_out = sounding;
 end
