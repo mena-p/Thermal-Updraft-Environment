@@ -130,6 +130,19 @@ thermalp = squeeze(ps(1,2,:));
 sensorp = squeeze(ps(1,5,:));
 alts = simalts;
 
+% Remove the first 12 seconds of data (time it takes for velocity to 
+% converge due to filtered derivative)
+realT = realT(12:end);
+thermalT = thermalT(12:end);
+sensorT = sensorT(12:end);
+realRH = realRH(12:end);
+thermalRH = thermalRH(12:end);
+sensorRH = sensorRH(12:end);
+realp = realp(12:end);
+thermalp = thermalp(12:end);
+sensorp = sensorp(12:end);
+alts = simalts(12:end);
+simtimes = simtimes(12:end);
 %% Calculate correlation coeffs on entire flight
 corr_temp = corrcoef(realT,sensorT);
 corr_hum = corrcoef(realRH,sensorRH);
