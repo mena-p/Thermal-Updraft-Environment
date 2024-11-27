@@ -20,12 +20,6 @@ for i = 1:length(altitude_bins)
     profile(i) = mean(humidity_in_bin);
 end
 
-% Plot the humidity profile
-figure
-plot(profile, altitude_bins)
-xlabel('Humidity (%)')
-ylabel('Altitude (m)')
-title('Humidity Profile')
-
+profile = movmean(profile,2);
 end
 
