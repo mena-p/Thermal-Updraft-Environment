@@ -73,7 +73,7 @@ function updateData(y,time,sigNum)
         soarsense = findobj(allchild(gui), 'Tag', 'soarsensePlot');
        
         theta = y(1,1);
-        rho = min(y(1,2),1);
+        rho = 1;
         set(soarsense,'ThetaData',theta,'RData',rho)
         drawnow;
     else
