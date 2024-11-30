@@ -30,6 +30,10 @@ function gradient = thermal_gradient(vpt)
     vpt_left = vpt(2);
     vpt_right = vpt(3);
 
+    if isnan(vpt_nose) % model running without nose sensor
+        vpt_nose = (vpt_left + vpt_right)/2;
+    end
+    
     % Calculate the gradient of virtual potential temperature in the body frame
     dtheta_dy = (vpt_right - vpt_left) / wingspan;
     dtheta_dx = (vpt_nose - (vpt_left + vpt_right) / 2) / nose_to_wing;
