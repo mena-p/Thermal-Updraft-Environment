@@ -1,6 +1,13 @@
 function [flight,name] = parse_igc_file(filepath)
-% Parses an IGC file and extracts metadata and trajectory.
-%   Detailed explanation goes here
+%   Parses an IGC file and extracts metadata and trajectory.
+%   The function returns a structure FLIGHT containing the date, pilot's
+%   name, glider type, registration, and trajectory data.
+%
+%   Inputs: filepath - String containing the path to the IGC file.
+%
+%   Outputs:
+%       FLIGHT - Structure containing flight metadata and trajectory data.
+%       NAME - String combining the flight date and pilot's name.
 
 % Open the igc file
 disp('Parsing IGC file. Please wait...')

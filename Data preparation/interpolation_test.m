@@ -204,7 +204,7 @@ lons = [zeros(x_len, 1); lons];
 ptemp = [ptemp_x; ptemp_y];
 
 % Interpolate the values in ptemp to obtain the potential temperature at any point xq,yq in the updraft
-ptemp2 = griddata(lats,lons,ptemp,xq,yq,"linear");
+ptemp2 = griddata(lats,lons,ptemp,xq,yq,"linear"); % linear, cubic, natural, or nearest
 
 % Plot the interpolated values
 figure

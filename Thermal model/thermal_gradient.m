@@ -9,7 +9,11 @@ function gradient = thermal_gradient(vpt)
     %
     % Inputs:
     %   vpt - A vector containing the virtual potential temperature measurements 
-    %         from three sensors: [vpt_nose, vpt_left, vpt_right].
+    %         from three sensors: [vpt_nose, vpt_left, vpt_right]. It was adapted
+    %         to work with only two sensors, the average of the left and right 
+    %         sensors is used instead of the cockpit sensor. If this is the case,
+    %         the input should be [NaN, vpt_left, vpt_right], and the x
+    %         component of the gradient will be nonsense.
     %
     % Outputs:
     %   gradient - A vector representing the gradient of the virtual potential 

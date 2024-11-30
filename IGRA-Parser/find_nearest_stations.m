@@ -2,8 +2,10 @@ function nearby_stations = find_nearest_stations(flight, stations)
     % FIND_NEAREST_STATIONS - Find the nearest stations to a flight trajectory
     %
     %   Inputs:
-    %       - flight: Structure containing flight information, including the flight date and trajectory.
-    %       - stations: Table containing information about available stations, including latitude, longitude, and observation years.
+    %       - flight: Structure containing flight information, including the 
+    %         flight date and trajectory.
+    %       - stations: Table containing information about available stations,
+    %         including latitude, longitude, and observation years
     %
     %   Output:
     %       - nearby_stations: Table of stations closest to the flight trajectory.

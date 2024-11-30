@@ -9,7 +9,7 @@ function thermal = import_hardt_thermal(filename, dataLines)
 %  scalar integers for dis-contiguous row intervals.
 %
 %  Example:
-%  thermal = import_hardt_thermal("C:\Users\Pedro\Documents\Faculdade\Bachelorarbeit\Thermal-Updraft-Model\flight_1_thermal-no_2_2,1,UW.csv", [1, Inf]);
+%  thermal = import_hardt_thermal("Raw Data\Hardt data\flight_1_thermal-no_2_2,1,UW.csv", [1, Inf]);
 %
 %  See also READTABLE.
 %

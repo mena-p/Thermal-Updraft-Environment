@@ -22,7 +22,7 @@ function reduced_sounding = extract_sounding_data(sounding)
     %
     % Input: sounding - a sounding object
     % Output: reduced_sounding - a reduced sounding containing only the 
-    % extracted values, and no missing geopotential height values.
+    % extracted values, and no missing geopotential height and humidity values.
 
     % Initialize a reduced sounding object and copy the relevant attributes
     %reduced_sounding.stationID = sounding.stationID;

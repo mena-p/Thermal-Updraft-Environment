@@ -1,7 +1,7 @@
 function soundings = parse_derived(filename)
 % Usage: exampleOutput = parse_sounding('GMM00010868-drvd.txt');
 % This function parses an IGRA derived parameter file containing
-% multiple soundings and returns an array of atmospheric sounding
+% multiple soundings and returns an array of ALL atmospheric sounding
 % objects. Each object contains information about the sounding, such
 % as date, time, location, inversion height, mixed layer depth, etc. 
 % and derived parameter values at each pressure level. Missing

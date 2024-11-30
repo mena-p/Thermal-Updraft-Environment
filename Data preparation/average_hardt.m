@@ -2,9 +2,11 @@ function [ptemp_avg,spec_hum_avg,rel_dist] = average_hardt(tables)
 % This function averages the potential temperature and specific 
 % humidity differences for the flights provided in tables and returns the
 % average values truncated to -4 to 4 relative distance.
-%   INPUT: tables - a cell array of tables containing the potential
+%   INPUT: 
+%   tables - a cell array of tables containing the potential
 %   temperature and specific humidity differences for the flights
-%   OUTPUT: ptemp_avg - the average potential temperature difference
+%   OUTPUT: 
+%   ptemp_avg - the average potential temperature difference
 %   spec_hum_avg - the average specific humidity difference
 
 

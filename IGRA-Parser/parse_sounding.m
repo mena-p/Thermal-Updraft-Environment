@@ -1,7 +1,7 @@
 function soundings = parse_sounding(filename)
 % Usage: exampleOutput = parse_sounding('GMM00010868-data.txt');
 % This function parses an IGRA atmospheric sounding file containing
-% multiple soundings and returns an array of atmospheric sounding
+% multiple soundings and returns an array of ALL atmospheric sounding
 % objects. Each object contains information about the sounding, such
 % as date, time, location, etc. and the measured data itself. Missing
 % flags in the measument data or headers are filled with NaN

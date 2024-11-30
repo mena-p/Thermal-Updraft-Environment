@@ -1,6 +1,15 @@
+
+
 function sounding_out = extrapolate_sounding(sounding)
     % This function extrapolates the temperature of the sounding
     % above the mixed layer height zi, using the dry-adiabatic lapse rate.
+    %   Inputs:
+    %   sounding - A sounding
+    %
+    %   Outputs:
+    %       sounding_out - A structure similar to the input 'sounding' with updated
+    %       temperature (TEMP) and potential temperature (PTEMP) profiles, but 
+    %       otherwise identical.
 
     % Get the mixed layer height
     zi = sounding.mixedLayerHeight;

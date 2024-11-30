@@ -2,7 +2,7 @@ function soundings = parse_derived_by_date(stationID, date)
     % Usage: soundings = parse_derived_by_date('GMM00010868','31.01.2019');
     % This function searches an IGRA derived parameter file containing
     % multiple soundings for a sounding on the given date and returns 
-    % a sounding object with the sounding if it is found. 
+    % the sounding objects if soundings are found. 
     % The object contains information about the sounding, such
     % as date, time, location, inversion height, mixed layer depth, etc. 
     % and derived parameter values at each pressure level. Missing

@@ -1,24 +1,26 @@
-% This script was used to tune the sensor parameters. It requires the
+% This script was used to tune the sensor parameters. It also plots
+% the comparison between the sounding profile and the profile obtained
+% from sensor data shown in chapter 6. It requires the
 % Global Optimization Toolbox.
 
 close all
 clear
 
 % Load data
-load('sounding_buses_tuning.mat') % the ptemp is extrapolated above zi 
-% in this sounding, just like it is in the actual simulation environment
+load('sounding_buses_tuning.mat') % <- use the GUI to select other soundings if you wish
+% the ptemp is extrapolated above zi in this sounding, 
+% just like it is in the actual simulation environment
+
 sounding = sounding_buses(1);
 
-sensorData = importSensorData('Raw data/pedro_csv.csv');
-%sensorData = sensorData(1:20000,:);
-%sensorData = sensorData(46151:46151+27551,:);
-% sensorData_descent = sensorData(1:19401,:);
+sensorData = importSensorData('Raw data/pedro_csv.csv'); % <- change this to the path of the sensor data
+
 altitude = sensorData.gps_altitude;
 latitude = sensorData.gps_y/111000;
 longitude = sensorData.gps_x/111000;
 time = sensorData.time;
 
-% Fix Leo velocity
+% Fix Leo velocity (this step was needed due to errors in the sensor data)
 diffX = diff(sensorData.gps_x)./0.02;
 diffY = diff(sensorData.gps_y)./0.02;
 diffH = diff(sensorData.gps_altitude)./0.02;

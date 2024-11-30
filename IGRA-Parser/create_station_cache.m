@@ -3,7 +3,8 @@ function create_station_cache(stationID)
 %
 % This function creates a cache for a specified station by extracting
 % sounding dates and line numbers from the derived parameter file for that
-% station. The cache is saved as a .mat file in the Cache folder.
+% station. The cache stores the line at which soundings for a specific day
+% can be found. It is saved as a .mat file in the Cache folder.
 
     filename = fullfile('IGRA-Parser', 'Cache', strcat(stationID, '-cache.mat'));
     stationFilename = fullfile('IGRA-Parser', 'Stations', strcat(stationID, '-drvd.txt'));

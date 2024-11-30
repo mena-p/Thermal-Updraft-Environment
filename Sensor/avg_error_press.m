@@ -1,4 +1,17 @@
 function error = avg_error_press(b,d,sensorData,sounding_buses)
+%   This function calculates the mean squared error between the pressure 
+%   measurements from the sensor data and the pressure from 
+%   the sounding data, adjusted by a constant offset and the dynamic
+%   pressure. It is used to tune the sensor model in chapter 6.
+%
+%   Inputs:
+%       b - offset.
+%       d - dynamic pressure parameter.
+%       sensorData - Structure with sensor data.
+%       sounding_buses - Simulink bus with sounding data.
+%
+%   Outputs:
+%       error - The mean squared error.   
     n = length(sensorData.time);
     err = zeros(1,n);
     for i = 1:n
@@ -27,7 +40,7 @@ function error = avg_error_press(b,d,sensorData,sounding_buses)
         measured_p = sensorData.pressure(i); % hPa
         rho = p/(0.2870*T); % kg/m^3
         p = p*10; % hPa
-        p = p(1,1) + b + d * rho * v_squared;
+        p = p(1,1) + b + d * rho * v_squared; % e.q. 6-17 thesis
         err(i) = (p - measured_p)^2;
     end
     error = sum(err)/n;

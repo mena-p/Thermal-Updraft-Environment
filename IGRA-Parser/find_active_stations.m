@@ -5,12 +5,14 @@ function active_stations = find_active_stations(flight, stations, max_dist)
     %       stations = find_active_stations(flight, stations, max_dist)
     %
     %   Input Arguments:
-    %       - flight: Structure containing flight information, including the flight date and trajectory.
-    %       - stations: Table containing information about available stations, including latitude, longitude, and observation years.
+    %       - flight: Structure containing flight information, including the flight
+    %         date and trajectory.
+    %       - stations: Table containing information about available stations,
+    %         including latitude, longitude, and observation years (found in stations.mat file).
     %       - max_dist: Maximum distance (in meters) allowed between a station and the flight trajectory.
     %
     %   Output Argument:
-    %       - active_stations: Filtered table of stations that meet the criteria.
+    %       - active_stations: Filtered table of stations that meet the criteria and were active.
 
     % Get flight date
     date = flight.date; % datetime object

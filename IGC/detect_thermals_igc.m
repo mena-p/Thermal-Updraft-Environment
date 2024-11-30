@@ -1,3 +1,19 @@
+% Detects thermal positions from a given flight trajectory.
+% 
+%   The function takes a flight trajectory structure containing latitude, 
+%   longitude, and altitude data and detects thermal positions based on 
+%   circular patterns in the trajectory. The function returns the thermal
+%   positions in latitude and longitude coordinates. The original algorithm
+%   was developed by Leo Heller in SoarSense: A Comprehensive Measurement 
+%   and Validation Platform for Thermal Models.
+%
+%   Input:
+%       trajectory - A structure containing the a timetable with 
+%                    fields 'lat', 'lon', and 'alt'.
+%                    
+%   Output:
+%       Thermal_positions - An Nx2 matrix containing the latitude and longitude 
+%                           coordinates of detected thermal positions.
 function [Thermal_positions] = detect_thermals_igc(trajectory)
     
     positions = [];

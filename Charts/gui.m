@@ -1,4 +1,5 @@
 function gui()
+    % This function defines the GUI of the environment.
     
     all_fig = findall(0, 'type', 'figure');
     close(all_fig)

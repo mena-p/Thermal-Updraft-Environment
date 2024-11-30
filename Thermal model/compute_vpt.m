@@ -1,6 +1,4 @@
 function vpt = compute_vpt(T, RH, p)
-    % virtual_potential_temperature Calculate the virtual potential temperature.
-    %
     %   vpt = virtual_potential_temperature(T, RH, P) computes the virtual 
     %   potential temperature given the temperature (T) in kelvin, relative 
     %   humidity (RH) in percentage, and pressure (P) in pascals.

@@ -43,7 +43,7 @@ times = seconds(times);
 % for this rate.
 
 %% Extract simulation results
-%load('Validation/simulation_out_sensor_model.mat')
+%load('Validation/simulation_out_sensor_model.mat') % <- Uncomment this line to skip the simulation
 
 % Extract model results
 temps = out.yout{1}.Values.Data;

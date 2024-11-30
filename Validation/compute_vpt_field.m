@@ -1,5 +1,20 @@
-function [vpt, lat_grid, lon_grid] = compute_vpt_field(sounding_buses, updrafts,resolution)
-    
+
+function [vpt, lat_grid, lon_grid] = compute_vpt_field(sounding_buses,updrafts,resolution)
+%   Computes the VPT field over a specified area based on updraft positions
+%   and sounding data. The function returns the VPT field, latitude grid, 
+%   and longitude grid. The temperature, humidity, and pressure are
+%   computed using the thermal model function.
+% 
+%   Inputs:
+%       sounding_buses - Array of sounding data structures.
+%       updrafts       - Cell array of updraft data structures.
+%       resolution     - Resolution of the grid.
+% 
+%   Outputs:
+%       vpt            - Computed VPT field.
+%       lat_grid       - Latitude grid.
+%       lon_grid       - Longitude grid.
+
     % Extract updraft positions
     latitudes = zeros(1, length(updrafts));
     longitudes = zeros(1, length(updrafts));
@@ -55,11 +70,4 @@ function [vpt, lat_grid, lon_grid] = compute_vpt_field(sounding_buses, updrafts,
             vpt(i, j) = compute_vpt(T(1), RH(1), p(1));
         end
     end
-
-    % % Display the VPT field as a contour map
-    % test = contourf(lon_grid, lat_grid, vpt);
-    % colorbar;
-    % title('Virtual Potential Temperature Contour');
-    % xlabel('Longitude');
-    % ylabel('Latitude');
 end

@@ -1,8 +1,7 @@
 function [profile,altitude_bins] = get_temp_profile(sensorData)
-%GET_HUMIDITY_PROFILE This function extracts the humidity profile from measured sensor data
-%   This function computes the vertical profile of humidity from the measured sensor data
-%   by binning the data into altitude bins and computing the mean humidity in each bin.
-%   The function returns the altitude bins and the mean humidity in each bin.
+%   This function computes the vertical profile of temperature from the measured sensor data
+%   by binning the data into altitude bins and computing the mean temperature in each bin.
+%   The function returns the altitude bins and the mean temperature in each bin.
 %   The data is binned into 1m bins.
 
 

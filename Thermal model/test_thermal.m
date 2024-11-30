@@ -1,4 +1,4 @@
-% This script tests the methods of the Updraft class
+% This script tests the elliptical distance method of the updraft class
 
 clear
 close all

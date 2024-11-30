@@ -2,7 +2,8 @@ function interpolated_sounding = interpolate_missing(sounding)
     % interpolate_missing interpolates missing data points in a sounding object
     % in a 1 meter interval.
     % The function takes a sounding object as input and outputs a new sounding
-    % object with the missing data points interpolated.
+    % object with the missing data points interpolated. It was used in old versions
+    % of the environment before interpolation was moved to the thermal_model function.
 
     % Create a new sounding object with the original atmospheric parameters, but no table
     interpolated_sounding = sounding;

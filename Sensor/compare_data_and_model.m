@@ -1,5 +1,9 @@
 % This script was used to test different sensor models and to 
 % compare the flight test data with the thermal model data.
+% The script loads the flight data, the sounding data and thermals
+% so that the tuneSensor.slx model can run. After it runs, the results
+% are extracted and plotted against the sensor data. It was used to make
+% some of the plots in chapter 6.
 %% Load data
 
 load("sounding_buses.mat","sounding_buses");
@@ -63,7 +67,7 @@ idx = find(alts > zi - 10 & alts < zi + 10);
 idx = idx([true; diff(idx) > 10]);
 
 % Note: manual adjustment of the idx vector is needed to remove some
-% entries, the indices used in the thesis are saved to zi_indices.mat
+% entries, the indices used in the thesis were saved to zi_indices.mat
 load("zi_indices.mat")
 
 %% Plot real and simulated values

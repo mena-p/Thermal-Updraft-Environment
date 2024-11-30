@@ -5,7 +5,8 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     % temperature, specific humidity, and pressure accordingly. If
     % the aircraft is not in an updraft, it uses the values from the
     % atmospheric soundings. If it is in an updraft, it adds the updraft's
-    % potential temperature and specific humidity excess to the sounding
+    % potential temperature and specific humidity excess to the sounding.
+    % If the glider is inside multiple updrafts, the excesses are averaged.
     %
     % Inputs:
     % lat = Aircraft latitude (degrees)
@@ -15,9 +16,10 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     %            requires this to be a cell array)
     %
     % Outputs:
-    % T = Temperature (K)
-    % q = Specific humidity (kg/kg)
-    % p = Pressure (Pa)
+    % T_out = Temperature (K)
+    % q_out = Specific humidity (kg/kg) (not used in the environment)
+    % p_out = Pressure (Pa)
+    % RH_out = Relative humidity (%)
 
     glider.wingspan = 12; % wingspan of the glider (m)
     d_nose_to_center = 0.8; % distance from nose to center of the wings (m)
@@ -192,12 +194,12 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
         weights = ones(num_updrafts,1);
     end
 
-    % Compute the weighted average
+    % Compute the weighted average at the cockpit, left wingtip, and right wingtip
     avg_ptemp_diff = zeros(1,3);
     avg_humidity_diff = zeros(1,3);
     if(~isempty(updrafts))
         for i = 1:num_updrafts
-            if updraft_indices(i)
+            if updraft_indices(i) % glider inside updraft
                 avg_ptemp_diff(1) = avg_ptemp_diff(1) + weights(i) * updrafts{i}.ptemp_diff(lats(1), lons(1));
                 avg_humidity_diff(1) = avg_humidity_diff(1) + weights(i) * updrafts{i}.humidity_diff(lats(1), lons(1));
                 avg_ptemp_diff(2) = avg_ptemp_diff(2) + weights(i) * updrafts{i}.ptemp_diff(lats(2), lons(2));
@@ -228,27 +230,4 @@ function [T_out,q_out,p_out,RH_out] = thermal_model(lat,lon,alt,euler_angles,upd
     RH_out = e./esat;
     RH_out = RH_out(1,1:3) * 100;
 
-
-    % Check if the aircraft is inside the nearest updraft
-    %if is_inside(updrafts{updraft_index},x,y,z,sounding_data.zi)
-        % We add the updraft's potential temperature and specific humidity excess to the
-        % sounding data's values
-        
-        %% Get (virtual) potential temperature values at the surface
-        %Tp = sounding_data.PTEMP(1,1);
-        %Tv = sounding_data.VTEMP(1,1);
-
-        %% Calculate the temperature inside the updraft (Stull)
-        %T = Tp * (p/100000)^0.286;
-        
-        %% Calculate mixing ratio inside the updraft (kg water/kg dry air)
-        %r = 1/0.61 * (Tv/T - 1);
-
-        %% Calculate specific humidity inside the updraft (kg water/kg moist air)
-        %q = r/(1 + r);
-
-        %T = T + updrafts{updraft_index}.ptemp_diff(x,y);
-        %q = q + updrafts{updraft_index}.humidity_diff(x,y)/1000;
-        
-    %end
 end

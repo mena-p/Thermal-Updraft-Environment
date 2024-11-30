@@ -5,7 +5,7 @@
 % thermal placed at the location of the real thermal, and the other does
 % not. The correlations of temperature and humidity between both runs and
 % the actual measured values are compared. The simulations with the
-% thermal has a larger corelation. This script test the 4 thermals closest
+% thermal has a larger corelation. This script tests the 4 thermals closest
 % to the sounding station. To choose which thermal should be tested,
 % uncomment the lines defining the ascent (%% Choose ascent) and the
 % corresponding updraft (%% Initialize updraft). Your
@@ -104,7 +104,7 @@ for i = 2:n
     % without updraft
     [T,~,~,RH] = thermal_model(lat_ascent(i),lon_ascent(i),alt_ascent(i),[0 0 0],{dummyUpdraft},sounding_buses);
     T_air = T(1);
-    RHwithout(i) = RH(1) + c;
+    RHwithout(i) = RH(1) + c; % e.q. 6-11 thesis
     T_aircraft2(i) = (0.02/(tau+0.02))*T_air + (tau/(tau+0.02))*T_aircraft2(i-1);
     Twithout(i) = (1-f)*T_aircraft2(i) + f*T_air +  + b; % eq. 6-8 thesis
 end
@@ -181,7 +181,7 @@ updrafts = cell(1,length(lons));
 for i = 1:length(lons)
     updraft = Updraft(49.0247+0.01*rand(1),lons(i),1600);
     updraft.gain = 1;
-    updraft.wind_dir = 70 + 40*rand(1);
+    updraft.wind_dir = 70 + 40*rand(1); % Updrafts are approximately aligned with the wind in a cloud street
     updrafts{i} = updraft;
 end
 
