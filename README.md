@@ -1,22 +1,49 @@
 # Before starting...
-Ensure you are running Matlab and Simulink version 2024b and have installed the [Aerospace Blockset](https://ch.mathworks.com/products/aerospace-blockset.html), the [Aerospace Toolbox](https://ch.mathworks.com/products/aerospace-toolbox.html), the [Curve Fitting Toolbox](https://ch.mathworks.com/products/curvefitting.html), the [Mapping Toolbox](https://www.mathworks.com/products/mapping.html), and the [Global Optimization Toolbox](https://www.mathworks.com/products/global-optimization.html).
-Clone the repository to your machine.
+Ensure you are running Matlab and Simulink version 2024b and have installed the [Aerospace Blockset](https://ch.mathworks.com/products/aerospace-blockset.html), the [Aerospace Toolbox](https://ch.mathworks.com/products/aerospace-toolbox.html), the [Curve Fitting Toolbox](https://ch.mathworks.com/products/curvefitting.html), the [Mapping Toolbox](https://www.mathworks.com/products/mapping.html), the [Optimization Toolbox](https://ch.mathworks.com/products/optimization.html), and the [Global Optimization Toolbox](https://www.mathworks.com/products/global-optimization.html).
 
 # Using the environment
 Double-click the ThermalUpdraftModel.prj project file to open the project. This will open the GUI, the Simulink model, and the data inspector. 
 
-You can use the GUI to set up the simulation. Load an IGC file, run the automatic thermal detection or add thermals manually, and search for atmospheric soundings on the day of the flight. Select at least one sounding from the table and send the data to the model. 
+Note: ALWAYS launch and use the GUI from the root directory of the project. 
+Also, you'll need internet access when loading a flight for the first time so that
+IGRA data can be downloaded.
+An in-depth explanation of the GUI can be found on chapter 3 of the thesis.
 
-Run the model and visualize the simulation's output in the simulation data inspector or in the Simulation tab of the GUI. 
+## Setup
+You can use the GUI (the window titled "Soarsense") to set up the simulation. 
+Begin by clicking the 'Load Flight' button and select an .igc or .mat file in the Flights/ 
+folder to load a flight.
+Then, place thermals at the desired locations with the detect, add, remove, and remove all thermals buttons. 
+Search for atmospheric soundings on the day of the flight using the "find sounding" button. 
+This can take a while on the first time a flight is loaded, since the IGRA station files need to be downloaded. 
+You can monitor the progress on the command window. Soundings will appear in the table in the GUI.
+Select at least one of them and click the "send to model" button.
 
-If you wish to run the model directly using sensor data instead, do the setup normally but run the prepare_sensor_data.m script at the end (found in the Data preparation directory). The sensor data should be in the same format as the "pedro_csv" file Leo created. It can be found in the Raw data folder. Then, select the "use flight test data" variant of the sensor model, and run the simulation normally.
+Run the model and visualize the predicted and actual thermal directions in the Simulation tab of the GUI.
+You can also click any of the logged signals or the file "Data Inspector.mldatx
+to open the simulation data inspector.
 
 The thermal detection algorithm should be implemented in the "SoarSense" block.
 
-Note: ALWAYS launch and use the GUI from the root directory of the project. An in-depth explanation of the GUI can be found on chapter 3 of the thesis.
+## Running with flight test data
+If you wish to run the model directly using sensor data instead, do the setup as above but 
+run the prepare_sensor_data.m script at the end (found in the Data preparation directory). 
+Note: if you are using another file than the one provided, it should be in the same 
+format as the "pedro_csv" file Leo created. It can be found in the Raw data folder. 
+Then, open the simulink model and left click the sensor variant subsystem and click "block parameters".
+Set the "use flight test data" variant of the sensor model to true and all other to false. 
+Run the simulation normally.
+
 
 # Improving the thermal model fits
-The fit_thermal.mlx script can be used to improve the thermal model derived in chapter 5 of the thesis. It includes the necessary instructions. You will find it in the data preparation directory.
+The fit_thermal.mlx script can be used to improve the thermal model derived in chapter 5 of the thesis.
+It includes the necessary instructions. You will find it in the data preparation directory.
 
 # Re-tuning the sensor models
-To re-tune the sensor models, use the tuneSensors.m script found in the Sensor directory. The sounding data used to tune can be extracted from a sounding using the GUI, and the sensor data should be provided in the same format as the file created by Leo, "pedro_csv", found in the raw data directory. 
+To re-tune the sensor models, use the tuneSensors.m script found in the Sensor directory.
+The script contains the necessary instructions.
+
+Note: if you wish to use other sounding data to tune the sensor, you can use the GUI to find and
+download the necessary data. If you're using other sensor data than the one included,
+it should be in the same format as the file created by Leo, "pedro_csv", 
+found in the raw data directory.

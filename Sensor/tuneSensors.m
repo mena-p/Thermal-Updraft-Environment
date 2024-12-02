@@ -3,6 +3,10 @@
 % from sensor data shown in chapter 6. It requires the
 % Global Optimization Toolbox.
 
+% You must run the first two sections (up to line 58), but afterwards you
+% can run the temperature, humidity and pressure sections separately
+% depending on what you want to tune.
+
 close all
 clear
 
